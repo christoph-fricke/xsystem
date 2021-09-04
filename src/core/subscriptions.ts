@@ -6,6 +6,7 @@ import {
 	SubscribeEvent,
 	UnsubscribeEvent,
 	WithSubscriptions,
+	SubEvents,
 } from "./subscribe_events";
 
 interface SubscriptionExtension<E extends EventObject> {
@@ -16,7 +17,7 @@ interface SubscriptionExtension<E extends EventObject> {
 	 * Handle {@link SubscribeEvent}s and {@link UnsubscribeEvent}s.
 	 * @returns `true` if an event has been handled by this extension.
 	 */
-	handle(event: EventObject): event is WithSubscriptions<E>;
+	handle(event: EventObject): event is SubEvents<E>;
 
 	/** Publish an event to all actors that subscribed to that event. */
 	publish(event: E): void;
@@ -29,7 +30,7 @@ export function createSubscriptions<
 
 	return {
 		subscribers: subscribers.values(),
-		handle(event): event is WithSubscriptions<E> {
+		handle(event): event is SubEvents<E> {
 			if (is<SubscribeEvent<E>>("xsystem.subscribe", event)) {
 				for (const type of event.eventTypes ?? ["*"])
 					subscribers.add(type, event.ref);
@@ -42,6 +43,7 @@ export function createSubscriptions<
 
 				return true;
 			}
+
 			return false;
 		},
 		publish(event) {
