@@ -14,7 +14,8 @@
 	"main": "index.js",
 	"exports": {
 		"./core": "./dist/core/index.js",
-		"./event-bus": "./dist/actors/event-bus.js"
+		"./event_bus": "./dist/actors/event_bus.js",
+		"./registry": "./dist/actors/registry.js"
 	},
 	"scripts": {
 		"clean": "rm -rf dist",
