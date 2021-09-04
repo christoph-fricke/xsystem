@@ -1,0 +1,33 @@
+{
+	"name": "xsystem",
+	"version": "0.1.0",
+	"license": "MIT",
+	"author": "Christoph Fricke <christoph@frickeonline.de> (https://christoph-fricke.de)",
+	"description": "Actor Building Blocks for XState",
+	"keywords": [
+		"XState",
+		"Actors",
+		"Plug'n Play"
+	],
+	"repository": "github:christoph-fricke/xsystem",
+	"type": "module",
+	"main": "index.js",
+	"exports": {
+		"./core": "./dist/core/index.js",
+		"./event-bus": "./dist/actors/event-bus.js"
+	},
+	"scripts": {
+		"clean": "rm -rf dist",
+		"prebuild": "npm run clean",
+		"build": "tsc -b"
+	},
+	"peerDependencies": {
+		"xstate": "^4.23.4"
+	},
+	"devDependencies": {
+		"typescript": "^4.4.2"
+	},
+	"volta": {
+		"node": "16.8.0"
+	}
+}
