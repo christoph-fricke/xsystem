@@ -5,6 +5,7 @@ import { createBroadcastChannel } from "../utils/broadcast_channel";
 type EventBus<E extends EventObject> = Behavior<WithSubscriptions<E>, null>;
 
 declare global {
+	// eslint-disable-next-line no-var
 	var _xsystem_tabId: number | undefined;
 }
 
@@ -103,7 +104,9 @@ function broadcastBusBehavior<E extends EventObject>(
 		start(ctx) {
 			channel = createBroadcastChannel(ctx.id);
 			channel.onmessage = (msg) =>
-				msg.data.tabId === tabId ? subscriptions.publish(msg.data.event) : void 0;
+				msg.data.tabId === tabId
+					? subscriptions.publish(msg.data.event)
+					: void 0;
 			channel.onmessageerror = (msg) =>
 				ctx.observers.forEach((obs) => obs.error(msg));
 

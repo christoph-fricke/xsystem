@@ -20,9 +20,11 @@ import { is } from "../core/mod";
  * Extension of an {@link ActorRef} that makes quering the registry a bit more ergonomic.
  * Under the hood, messages are used, which may help to solve the above todo.
  */
-interface Registry extends ActorRef<any, any> {
-	get<A extends ActorRef<any, any>>(id: string): Promise<A | undefined>;
-	register<A extends ActorRef<any, any>>(actor: A): void;
+interface Registry extends ActorRefFrom<typeof registryBehavior> {
+	get<A extends ActorRef<EventObject, unknown>>(
+		id: string
+	): Promise<A | undefined>;
+	register<A extends ActorRef<EventObject, unknown>>(actor: A): void;
 	spawn<E extends EventObject, S>(
 		id: string,
 		behavior: Behavior<E, S>
@@ -35,7 +37,9 @@ export function createRegistry(id: string): Registry {
 
 	return {
 		...registry,
-		get<A extends ActorRef<any, any>>(id: string): Promise<A | undefined> {
+		get<A extends ActorRef<EventObject, unknown>>(
+			id: string
+		): Promise<A | undefined> {
 			return new Promise((resolve) => {
 				// A requestId is used in case an actor requests multiple ids rapidly.
 				const requestId = ids.next().value;
@@ -72,7 +76,7 @@ export function createRegistry(id: string): Registry {
 
 function registryBehavior(): Behavior<
 	RequestEvent | RegisterEvent,
-	Map<string, ActorRef<any, any>>
+	Map<string, ActorRef<EventObject, unknown>>
 > {
 	return {
 		initialState: new Map(),
@@ -106,16 +110,16 @@ interface RequestEvent extends EventObject {
 interface ResponseEvent extends EventObject {
 	type: "xsystem.registry.response";
 	requestId: number;
-	ref?: ActorRef<any, any>;
+	ref?: ActorRef<EventObject, unknown>;
 }
 
 interface RegisterEvent extends EventObject {
 	type: "xsystem.registry.register";
-	ref: ActorRef<any, any>;
+	ref: ActorRef<EventObject, unknown>;
 }
 
 /** Generates new request ids which wrap around after the limit is reached. */
-function* requestId(limit: number = 10_000) {
+function* requestId(limit = 10_000) {
 	let next = 0;
 	while (true) {
 		yield next;

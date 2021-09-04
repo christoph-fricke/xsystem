@@ -8,9 +8,11 @@ export function createBroadcastChannel(id: string): BroadcastChannel {
 /** Mock implementation of {@link BroadcastChannel} as a fallback for Safari browsers. */
 class BroadcastChannelMock implements BroadcastChannel {
 	name: string;
-	onmessage: ((this: BroadcastChannel, ev: MessageEvent<any>) => any) | null;
+	onmessage:
+		| ((this: BroadcastChannel, ev: MessageEvent<unknown>) => unknown)
+		| null;
 	onmessageerror:
-		| ((this: BroadcastChannel, ev: MessageEvent<any>) => any)
+		| ((this: BroadcastChannel, ev: MessageEvent<unknown>) => unknown)
 		| null;
 
 	constructor(name: string) {

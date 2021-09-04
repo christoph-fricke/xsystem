@@ -40,4 +40,3 @@ export function unsubscribe<E extends EventObject>(
 		ref,
 	};
 }
-

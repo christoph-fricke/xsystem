@@ -62,7 +62,7 @@ export class BucketMap<K, V> {
 			return this.#buckets.get(key)?.values() ?? new Set<V>().values();
 
 		// Collect all buckets into a mega bucket
-		let megaBucket = new Set<V>();
+		const megaBucket = new Set<V>();
 		for (const bucket of this.#buckets.values())
 			for (const value of bucket) megaBucket.add(value);
 
