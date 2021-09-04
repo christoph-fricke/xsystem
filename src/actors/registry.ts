@@ -1,6 +1,6 @@
 import { ActorRef, BaseActorRef, Behavior, EventObject } from "xstate";
 import { spawnBehavior } from "xstate/lib/behaviors";
-import { is } from "../core";
+import { is } from "../core/mod";
 
 interface Registry extends ActorRef<any, any> {
 	get<A extends ActorRef<any, any>>(id: string): Promise<A | undefined>;

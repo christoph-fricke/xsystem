@@ -1,7 +1,6 @@
 import { Behavior, EventObject, ActorRefFrom, ActorRef } from "xstate";
 import { spawnBehavior } from "xstate/lib/behaviors";
-import { createSubscriptions } from "../core/subscriptions";
-import { WithSubscriptions } from "../core";
+import { WithSubscriptions, createSubscriptions } from "../core/mod";
 import { createBroadcastChannel } from "../utils/broadcast_channel";
 
 type EventBus<E extends EventObject> = Behavior<WithSubscriptions<E>, null>;

@@ -1,5 +1,5 @@
 import { BaseActorRef, EventObject } from "xstate";
-import { is } from ".";
+import { is } from "./event_predicates";
 import { BucketMap } from "../utils/bucket_map";
 import {
 	EventType,

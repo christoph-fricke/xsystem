@@ -13,7 +13,7 @@
 	"type": "module",
 	"main": "index.js",
 	"exports": {
-		"./core": "./dist/core/index.js",
+		"./core": "./dist/core/mod.js",
 		"./event_bus": "./dist/actors/event_bus.js",
 		"./registry": "./dist/actors/registry.js"
 	},
