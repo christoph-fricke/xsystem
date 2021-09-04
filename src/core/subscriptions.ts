@@ -5,7 +5,6 @@ import {
 	EventType,
 	SubscribeEvent,
 	UnsubscribeEvent,
-	WithSubscriptions,
 	SubEvents,
 } from "./subscribe_events";
 
@@ -29,7 +28,9 @@ export function createSubscriptions<
 	const subscribers = new BucketMap<EventType<E>, BaseActorRef<E>>();
 
 	return {
-		subscribers: subscribers.values(),
+		get subscribers() {
+			return subscribers.values();
+		},
 		handle(event): event is SubEvents<E> {
 			if (is<SubscribeEvent<E>>("xsystem.subscribe", event)) {
 				for (const type of event.eventTypes ?? ["*"])
