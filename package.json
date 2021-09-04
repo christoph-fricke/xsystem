@@ -11,14 +11,19 @@
 	],
 	"repository": "github:christoph-fricke/xsystem",
 	"type": "module",
-	"main": "index.js",
 	"exports": {
+		".": "./dist/core/mod.js",
 		"./core": "./dist/core/mod.js",
 		"./event_bus": "./dist/actors/event_bus.js",
 		"./registry": "./dist/actors/registry.js"
 	},
+	"files": [
+		"dist",
+		"README.md",
+		"LICENSE"
+	],
 	"scripts": {
-		"prepublishOnly": "npm run build",
+		"prepack": "npm run build",
 		"clean": "rm -rf dist",
 		"prebuild": "npm run clean",
 		"build": "tsc -b",
