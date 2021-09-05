@@ -1,11 +1,3 @@
-export { is, createSubscriptions, fromActor } from "./core/mod";
-export type {
-	SubscribeEvent,
-	UnsubscribeEvent,
-	SubEvents,
-	WithSubscriptions,
-	EventType,
-} from "./core/mod";
-
+export * from "./core/mod";
 export { createRegistry } from "./actors/registry";
 export { createEventBus, EventBus } from "./actors/event_bus";

@@ -12,6 +12,8 @@ export type WithSubscriptions<
 	M extends EventObject = AnyEventObject
 > = E | SubEvents<E, M>;
 
+////////////////////////////////////////////////////////////////////////////////
+
 export interface SubscribeEvent<
 	E extends EventObject,
 	M extends EventObject = AnyEventObject
@@ -35,6 +37,8 @@ export function subscribe<
 		events: events ?? ["*"],
 	};
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 export interface UnsubscribeEvent<
 	E extends EventObject,
