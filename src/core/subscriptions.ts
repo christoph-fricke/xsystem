@@ -33,7 +33,7 @@ export function createSubscriptions<
 		},
 		handle(event): event is SubEvents<E> {
 			if (is<SubscribeEvent<E>>("xsystem.subscribe", event)) {
-				for (const type of event.eventTypes ?? ["*"])
+				for (const type of event.events)
 					subscribers.add(type, event.ref);
 
 				return true;

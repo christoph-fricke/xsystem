@@ -6,32 +6,35 @@ import {
 	InvokeCreator,
 } from "xstate";
 import {
-	SubEvents,
 	subscribe,
 	unsubscribe,
 	EventType,
+	WithSubscriptions,
 } from "./subscribe_events";
 
 type SubscribeAble<
-	TEvent extends EventObject,
-	TMore extends EventObject
-> = ActorRef<SubEvents<TEvent> | TMore>;
-
-// TODO: I might have some generics mixed up. Couldn't fully wrap my head around it yet.
+	E extends EventObject,
+	M extends EventObject = AnyEventObject
+> = ActorRef<WithSubscriptions<E, M>>;
 
 /** Creates an invoke callback that subscribes to the events published by a given actor. */
 export function fromActor<
 	TContext,
-	TEvent extends EventObject = AnyEventObject
+	TEvent extends EventObject = AnyEventObject,
+	TOtherEvent extends EventObject = AnyEventObject
 >(
-	getActor: (ctx: TContext, e: TEvent) => SubscribeAble<TEvent, EventObject>,
-	eventTypes: EventType<TEvent>[]
-): InvokeCreator<TContext, TEvent> {
+	getActor: (
+		ctx: TContext,
+		e: TEvent | TOtherEvent
+	) => SubscribeAble<TEvent, TOtherEvent>,
+	events?: EventType<TEvent>[]
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+): InvokeCreator<any, any> {
 	return (ctx, e) => (send, onReceive) => {
 		const actor = getActor(ctx, e);
-		const thisActorBase: BaseActorRef<TEvent> = { send };
+		const thisActorBase: BaseActorRef<TEvent | TOtherEvent> = { send };
 
-		actor.send(subscribe(thisActorBase, eventTypes));
+		actor.send(subscribe(thisActorBase, events));
 
 		onReceive((e) => actor.send(e));
 
