@@ -6,6 +6,9 @@ export type {
 	EventType,
 } from "./subscribe_events";
 export { subscribe, unsubscribe } from "./subscribe_events";
-export { createSubscriptions } from "./subscriptions";
+export {
+	createSubscriptions,
+	createSubscriptionsConfig,
+} from "./subscriptions";
 export { is } from "./event_predicates";
 export { fromActor } from "./from_actor";
