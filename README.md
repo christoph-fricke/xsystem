@@ -4,7 +4,7 @@
 
 ## Usage
 
-Until the package is published, it can be used in with the following steps:
+Until the package is published, it can be used with the following steps:
 
 1. Clone the Repository
 2. Pack the library with `npm pack`
