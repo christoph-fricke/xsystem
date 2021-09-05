@@ -1,17 +1,19 @@
-import { Behavior, EventObject } from "xstate";
+import { ActorRefFrom, Behavior, EventObject } from "xstate";
 import { WithSubscriptions, createSubscriptions } from "../core/mod";
 import { createBroadcastChannel } from "../utils/broadcast_channel";
+import { getInstanceRandom } from "../utils/identifier";
 
-type EventBus<E extends EventObject> = Behavior<WithSubscriptions<E>, null>;
+type EventBusBehavior<E extends EventObject> = Behavior<
+	WithSubscriptions<E>,
+	null
+>;
 
-declare global {
-	// eslint-disable-next-line no-var
-	var _xsystem_tabId: number | undefined;
-}
+/** {@link ActorRef} that proxies an received event to all subscribed actors. */
+export type EventBus<E extends EventObject> = ActorRefFrom<EventBusBehavior<E>>;
 
 interface CreateOptions {
 	/**
-	 * Defines the communication strategy of the created {@link EventBus}.
+	 * Defines the communication strategy of the created {@link EventBusBehavior}.
 	 * - **direct**: Directly calls the different observers for an event.
 	 * - **global-broadcast**: Extension of **direct** that broadcasts the event as well via a {@link BroadcastChannel}.
 	 * - **broadcast**: Similar to **global-broadcast** but applies additional filtering to stay within a browser tab.
@@ -19,24 +21,22 @@ interface CreateOptions {
 	strategy: "direct" | "global-broadcast" | "broadcast";
 }
 
+/** Create the {@link Behavior} for an {@link EventBus}, which can be spawned. */
 export function createEventBus<E extends EventObject>(
 	options?: Partial<CreateOptions>
-): EventBus<E> {
+): EventBusBehavior<E> {
 	if (options?.strategy === "global-broadcast") {
 		return globalBroadcastBusBehavior();
 	}
 
 	if (options?.strategy === "broadcast") {
-		if (typeof globalThis._xsystem_tabId === "undefined") {
-			globalThis._xsystem_tabId = Math.floor(Math.random() * 1_000_000);
-		}
-		return broadcastBusBehavior(globalThis._xsystem_tabId);
+		return broadcastBusBehavior(getInstanceRandom());
 	}
 
 	return busBehavior();
 }
 
-function busBehavior<E extends EventObject>(): EventBus<E> {
+function busBehavior<E extends EventObject>(): EventBusBehavior<E> {
 	const subscriptions = createSubscriptions<E>();
 
 	return {
@@ -51,7 +51,9 @@ function busBehavior<E extends EventObject>(): EventBus<E> {
 	};
 }
 
-function globalBroadcastBusBehavior<E extends EventObject>(): EventBus<E> {
+function globalBroadcastBusBehavior<
+	E extends EventObject
+>(): EventBusBehavior<E> {
 	const subscriptions = createSubscriptions<E>();
 	let channel: BroadcastChannel;
 
@@ -79,13 +81,13 @@ function globalBroadcastBusBehavior<E extends EventObject>(): EventBus<E> {
 }
 
 interface WrappedBroadcastEvent<E extends EventObject> {
-	tabId: number;
+	contextId: number;
 	event: E;
 }
 
 function broadcastBusBehavior<E extends EventObject>(
-	tabId: number
-): EventBus<E> {
+	contextId: number
+): EventBusBehavior<E> {
 	const subscriptions = createSubscriptions<E>();
 	let channel: BroadcastChannel;
 
@@ -97,14 +99,14 @@ function broadcastBusBehavior<E extends EventObject>(
 			if (subscriptions.handle(event)) return state;
 
 			subscriptions.publish(event);
-			channel.postMessage(<WrappedBroadcastEvent<E>>{ tabId, event });
+			channel.postMessage(<WrappedBroadcastEvent<E>>{ contextId, event });
 
 			return state;
 		},
 		start(ctx) {
 			channel = createBroadcastChannel(ctx.id);
 			channel.onmessage = (msg) =>
-				msg.data.tabId === tabId
+				msg.data.contextId === contextId
 					? subscriptions.publish(msg.data.event)
 					: void 0;
 			channel.onmessageerror = (msg) =>
