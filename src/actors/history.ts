@@ -1,5 +1,6 @@
 import { Behavior, EventObject } from "xstate";
 import { is } from "../core/mod";
+import { invariant } from "../utils/invariant";
 
 interface UndoEvent extends EventObject {
 	type: "xsystem.undo";
@@ -26,25 +27,25 @@ export function withHistory<E extends EventObject, S>(
 	behavior: Behavior<E, S>
 ): Behavior<UndoEvent | RedoEvent | E, S> {
 	let index = 0;
-	const history: S[] = [];
+	const history: S[] = [behavior.initialState];
 
 	return {
 		...behavior,
 		transition: (state, event, ctx) => {
 			if (is<UndoEvent>("xsystem.undo", event)) {
-				// "undo" is a no-op if the is no previous state
+				// "undo" is a no-op if there is no previous state
 				return index > 0 ? history[--index] : history[index];
 			}
 
 			if (is<RedoEvent>("xsystem.redo", event)) {
-				// "redo" is a no-op if the is no future state
-				return index < history.length ? history[++index] : history[index];
+				// "redo" is a no-op if there is no future state
+				return index + 1 < history.length ? history[++index] : history[index];
 			}
 
 			const nextState = behavior.transition(state, event, ctx);
 			history[++index] = nextState;
 			// Changing state during time traveling rewrites the future.
-			history.length = index + 1;
+			if (history.length !== index + 1) history.length = index + 1;
 
 			return nextState;
 		},
