@@ -1,36 +1,33 @@
-import { AnyEventObject, BaseActorRef, EventObject } from "xstate";
+import { EventObject } from "xstate";
+import { BaseActorRef } from "../utils/types";
 
 export type EventType<E extends EventObject> = E["type"] | "*";
 
-export type SubEvents<
-	E extends EventObject,
-	M extends EventObject = AnyEventObject
-> = SubscribeEvent<E, M> | UnsubscribeEvent<E, M>;
+export type SubEvents<E extends EventObject> =
+	| SubscribeEvent<E>
+	| UnsubscribeEvent<E>;
 
-export type WithSubscriptions<
-	E extends EventObject,
-	M extends EventObject = AnyEventObject
-> = E | SubEvents<E, M>;
+export type WithSubscriptions<E extends EventObject> = E | SubEvents<E>;
 
 ////////////////////////////////////////////////////////////////////////////////
 
 export interface SubscribeEvent<
 	E extends EventObject,
-	M extends EventObject = AnyEventObject
+	Actor extends BaseActorRef<E> = BaseActorRef<E>
 > extends EventObject {
 	type: "xsystem.subscribe";
-	ref: BaseActorRef<E | M>;
+	ref: Actor;
 	events: EventType<E>[];
 }
 
 /** Returns an {@link SubscribeEvent}. */
 export function subscribe<
 	E extends EventObject,
-	M extends EventObject = AnyEventObject
+	Actor extends BaseActorRef<E> = BaseActorRef<E>
 >(
-	ref: SubscribeEvent<E, M>["ref"],
-	events?: SubscribeEvent<E, M>["events"]
-): SubscribeEvent<E, M> {
+	ref: SubscribeEvent<E, Actor>["ref"],
+	events?: SubscribeEvent<E, Actor>["events"]
+): SubscribeEvent<E, Actor> {
 	return {
 		type: "xsystem.subscribe",
 		ref,
@@ -42,17 +39,17 @@ export function subscribe<
 
 export interface UnsubscribeEvent<
 	E extends EventObject,
-	M extends EventObject = AnyEventObject
+	Actor extends BaseActorRef<E> = BaseActorRef<E>
 > extends EventObject {
 	type: "xsystem.unsubscribe";
-	ref: BaseActorRef<E | M>;
+	ref: Actor;
 }
 
 /** Returns an {@link UnsubscribeEvent}. */
 export function unsubscribe<
 	E extends EventObject,
-	M extends EventObject = AnyEventObject
->(ref: UnsubscribeEvent<E, M>["ref"]): UnsubscribeEvent<E, M> {
+	Actor extends BaseActorRef<E> = BaseActorRef<E>
+>(ref: UnsubscribeEvent<E, Actor>["ref"]): UnsubscribeEvent<E, Actor> {
 	return {
 		type: "xsystem.unsubscribe",
 		ref,
