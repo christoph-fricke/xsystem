@@ -21,8 +21,7 @@ export function fromActor<
 >(
 	getActor: (ctx: TContext, e: TEvent) => SubscribeAble<TEvent>,
 	events?: EventType<TEvent>[]
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-): InvokeCreator<any, any> {
+): InvokeCreator<TContext, TEvent> {
 	return (ctx, e) => (send, onReceive) => {
 		const actor = getActor(ctx, e);
 		const thisActorBase: BaseActorRef<TEvent> = { send };
