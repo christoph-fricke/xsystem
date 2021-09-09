@@ -16,15 +16,14 @@ export type WithHistory<B> = B extends Behavior<infer E, infer S>
 
 /**
  * Adds undo/redo behavior to a given {@link Behavior}.
- * Currently, side-effects are not considered, e.g. a network request on an event
- * will not be undone/redone for an undo/redo event.
+ * Undo/Redo is based on state snapshots and will not rerun past events.
  *
  * Inspired by the
  * [corresponding mobx-state-tree middleware](https://github.com/mobxjs/mobx-state-tree/blob/master/packages/mst-middlewares/README.md#timetraveller).
  */
 export function withHistory<E extends EventObject, S>(
 	behavior: Behavior<E, S>
-): Behavior<UndoEvent | RedoEvent | E, S> {
+): WithHistory<typeof behavior> {
 	let index = 0;
 	const history: S[] = [behavior.initialState];
 
