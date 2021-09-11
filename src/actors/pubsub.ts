@@ -1,4 +1,12 @@
-import { ActorContext, Behavior, EventObject } from "xstate";
+import {
+	ActionObject,
+	ActorContext,
+	Behavior,
+	EventObject,
+	send,
+	SendActionOptions,
+	SpecialTargets,
+} from "xstate";
 import { WithSubscriptions, createSubscriptions, is } from "../core/mod";
 
 interface PublishEvent<E extends EventObject> extends EventObject {
@@ -54,4 +62,22 @@ export function publish<E extends EventObject, S>(
 		type: "xsystem.publish",
 		event,
 	});
+}
+
+/**
+ * Create an action that publishes the given event. If the machine
+ * is wrapped with the HOB {@link withPubSub}, the publish event will be handled and the
+ * provided event will be sent to all subscribers.
+ */
+export function publishAction<C, E extends EventObject, SE extends EventObject>(
+	event: SE,
+	options?: Omit<SendActionOptions<C, E>, "to">
+): ActionObject<C, E> {
+	return send(
+		{
+			type: "xsystem.publish",
+			event,
+		},
+		{ ...options, to: SpecialTargets.Parent }
+	);
 }

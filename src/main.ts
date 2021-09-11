@@ -2,4 +2,9 @@ export * from "./core/mod";
 export { createRegistry } from "./actors/registry";
 export { createEventBus, EventBus } from "./actors/event_bus";
 export { withHistory, WithHistory } from "./actors/history";
-export { withPubSub, WithPubSub, publish } from "./actors/pubsub";
+export {
+	withPubSub,
+	WithPubSub,
+	publish,
+	publishAction,
+} from "./actors/pubsub";
