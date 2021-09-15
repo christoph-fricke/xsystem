@@ -5,8 +5,16 @@ interface UndoEvent extends EventObject {
 	type: "xsystem.undo";
 }
 
+export function undoEvent(): UndoEvent {
+	return { type: "xsystem.undo" };
+}
+
 interface RedoEvent extends EventObject {
 	type: "xsystem.redo";
+}
+
+export function redoEvent(): RedoEvent {
+	return { type: "xsystem.redo" };
 }
 
 /** Higher order type to wrap the type for a {@link Behavior} with history events. */
