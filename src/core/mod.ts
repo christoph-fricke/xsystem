@@ -1,9 +1,8 @@
 export type {
 	SubscribeEvent,
 	UnsubscribeEvent,
-	WithSubscriptions,
 	SubEvents,
-	EventType,
+	EventTypeMatch,
 } from "./subscribe_events";
 export { subscribe, unsubscribe } from "./subscribe_events";
 export {

@@ -5,6 +5,6 @@ export { withHistory, WithHistory } from "./actors/history";
 export {
 	withPubSub,
 	WithPubSub,
-	publish,
-	publishAction,
+	Publish,
+	createPublishAction,
 } from "./actors/pubsub";

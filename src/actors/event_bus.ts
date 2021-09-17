@@ -1,13 +1,13 @@
 import { ActorRefFrom, Behavior, EventObject } from "xstate";
 import { createBroadcastChannel } from "../utils/broadcast_channel";
 import { getInstanceRandom } from "../utils/identifier";
-import { publish, withPubSub, WithPubSub } from "./pubsub";
+import { withPubSub, WithPubSub, Publish } from "./pubsub";
 
 type BaseBehavior<E extends EventObject> = Behavior<E, null>;
 
 /** {@link ActorRef} that proxies an received event to all subscribed actors. */
 export type EventBus<E extends EventObject> = ActorRefFrom<
-	WithPubSub<BaseBehavior<E>>
+	WithPubSub<E, BaseBehavior<E>>
 >;
 
 interface CreateOptions {
@@ -23,51 +23,55 @@ interface CreateOptions {
 /** Create the {@link Behavior} for an {@link EventBus}, which can be spawned. */
 export function createEventBus<E extends EventObject>(
 	options?: Partial<CreateOptions>
-): WithPubSub<BaseBehavior<E>> {
-	let strategy: BaseBehavior<E>;
+): WithPubSub<E, BaseBehavior<E>> {
+	let strategy: (pub: Publish<E>) => BaseBehavior<E>;
 
 	switch (options?.strategy) {
 		case "broadcast":
-			strategy = broadcastBusBehavior(getInstanceRandom());
+			strategy = (pub) => broadcastBusBehavior(getInstanceRandom(), pub);
 			break;
 		case "global-broadcast":
-			strategy = globalBroadcastBusBehavior();
+			strategy = globalBroadcastBusBehavior;
 			break;
 		default:
-			strategy = busBehavior();
+			strategy = busBehavior;
 			break;
 	}
 
 	return withPubSub(strategy);
 }
 
-function busBehavior<E extends EventObject>(): BaseBehavior<E> {
+function busBehavior<E extends EventObject>(
+	publish: Publish<E>
+): BaseBehavior<E> {
 	return {
 		initialState: null,
-		transition(state, event, ctx) {
-			publish(ctx, event);
+		transition(state, event) {
+			publish(event);
 
 			return state;
 		},
 	};
 }
 
-function globalBroadcastBusBehavior<E extends EventObject>(): BaseBehavior<E> {
+function globalBroadcastBusBehavior<E extends EventObject>(
+	publish: Publish<E>
+): BaseBehavior<E> {
 	let channel: BroadcastChannel;
 
 	// TODO: Close the channel once https://github.com/statelyai/xstate/pull/2560 is merged
 
 	return {
 		initialState: null,
-		transition(state, event, ctx) {
-			publish(ctx, event);
+		transition(state, event) {
+			publish(event);
 			channel?.postMessage(event);
 
 			return state;
 		},
 		start(ctx) {
 			channel = createBroadcastChannel(ctx.id);
-			channel.onmessage = (msg) => publish(ctx, msg.data);
+			channel.onmessage = (msg) => publish(msg.data);
 			channel.onmessageerror = (msg) =>
 				ctx.observers.forEach((obs) => obs.error(msg));
 
@@ -82,7 +86,8 @@ interface WrappedBroadcastEvent<E extends EventObject> {
 }
 
 function broadcastBusBehavior<E extends EventObject>(
-	contextId: number
+	contextId: number,
+	publish: Publish<E>
 ): BaseBehavior<E> {
 	let channel: BroadcastChannel;
 
@@ -90,8 +95,8 @@ function broadcastBusBehavior<E extends EventObject>(
 
 	return {
 		initialState: null,
-		transition(state, event, ctx) {
-			publish(ctx, event);
+		transition(state, event) {
+			publish(event);
 			channel?.postMessage(<WrappedBroadcastEvent<E>>{ contextId, event });
 
 			return state;
@@ -99,9 +104,7 @@ function broadcastBusBehavior<E extends EventObject>(
 		start(ctx) {
 			channel = createBroadcastChannel(ctx.id);
 			channel.onmessage = (msg) =>
-				msg.data.contextId === contextId
-					? publish(ctx, msg.data.event)
-					: void 0;
+				msg.data.contextId === contextId ? publish(msg.data.event) : void 0;
 			channel.onmessageerror = (msg) =>
 				ctx.observers.forEach((obs) => obs.error(msg));
 

@@ -3,24 +3,25 @@ import { BaseActorRef } from "../utils/types";
 import {
 	subscribe,
 	unsubscribe,
-	EventType,
-	WithSubscriptions,
+	EventTypeMatch,
+	SubEvents,
 } from "./subscribe_events";
 
 type SubscribeAble<
-	E extends EventObject,
-	Actor = ActorRef<E>
-> = Actor extends ActorRef<E, infer S>
-	? ActorRef<WithSubscriptions<E>, S>
+	SEvent extends EventObject,
+	AEvent extends EventObject,
+	Actor = ActorRef<AnyEventObject>
+> = Actor extends ActorRef<infer E, infer S>
+	? ActorRef<E | SubEvents<SEvent, AEvent>, S>
 	: never;
 
 /** Creates an invoke callback that subscribes to the events published by a given actor. */
 export function fromActor<
 	TContext,
-	TEvent extends EventObject = AnyEventObject
+	TEvent extends EventObject
 >(
-	getActor: (ctx: TContext, e: TEvent) => SubscribeAble<TEvent>,
-	events?: EventType<TEvent>[]
+	getActor: (ctx: TContext, e: TEvent) => SubscribeAble<TEvent, TEvent>,
+	events?: EventTypeMatch<TEvent>[]
 ): InvokeCreator<TContext, TEvent> {
 	return (ctx, e) => (send, onReceive) => {
 		const actor = getActor(ctx, e);
