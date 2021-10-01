@@ -1,30 +1,29 @@
 import {
+	AnyInterpreter,
 	Behavior,
 	EventObject,
+	interpret,
+	Interpreter,
 	State,
 	StateMachine,
+	StateSchema,
 	Typestate,
-	interpret,
-	AnyInterpreter,
 } from "xstate";
 
 /**
  * Creates a {@link Behavior} from a given machine. This makes the machine
  * composable with higher order behavior, e.g. `withPubSub`.
- *
- * TODO: This function has major TS problems. I don't know why. I can't assign a created machine.
  */
 export function fromMachine<
-	M extends StateMachine<C, S, E, TS>,
 	C,
-	S,
+	S extends StateSchema<unknown>,
 	E extends EventObject,
 	TS extends Typestate<C>
 >(
-	machine: M,
+	machine: StateMachine<C, S, E, TS>,
 	options?: Parameters<typeof interpret>["1"]
 ): Behavior<E, State<C, E, S, TS>> {
-	let service: AnyInterpreter | undefined;
+	let service: Interpreter<C, S, E, TS> | undefined;
 
 	// TODO: Stop machines once https://github.com/statelyai/xstate/pull/2560 is merged
 
