@@ -3,7 +3,6 @@
 [![GitHub issues](https://shields.io/github/issues-raw/christoph-fricke/xsystem?style=for-the-badge)](https://github.com/christoph-fricke/xsystem/issues)
 [![latest release](https://shields.io/github/v/release/christoph-fricke/xsystem?style=for-the-badge)](https://github.com/christoph-fricke/xsystem/releases/latest)
 ![dependencies](https://shields.io/david/christoph-fricke/xsystem?style=for-the-badge)
-[![bundle size](https://shields.io/bundlephobia/minzip/xsystem?style=for-the-badge)](https://bundlephobia.com/result?p=xsystem)
 
 > Building Blocks for [XState](https://github.com/statelyai/xstate)-based Actor
 > Systems.
