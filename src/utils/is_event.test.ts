@@ -14,7 +14,7 @@ describe(is, () => {
 		expect(actual).toBe(true);
 	});
 
-	it("should return false for missmatching events", () => {
+	it("should return false for miss-matching events", () => {
 		const actual = is<TestEvent>("test_event", {
 			type: "some_event",
 			arbitrary: 123,
