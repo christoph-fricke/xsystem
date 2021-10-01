@@ -18,13 +18,13 @@ describe(getAllWildcards, () => {
 		expect(actual).toStrictEqual(expected);
 	});
 
-  test("should accept dot as a wildcard", () => {
+  it("should accept dot as a wildcard", () => {
     const actual = getAllWildcards(".", "start.end");
 
     expect(actual).toStrictEqual(["*", "start.*"]);
   })
 
-  test("should accept slash as a wildcard", () => {
+  it("should accept slash as a wildcard", () => {
     const actual = getAllWildcards("/", "start/end");
 
     expect(actual).toStrictEqual(["*", "start/*"]);

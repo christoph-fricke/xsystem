@@ -4,8 +4,8 @@ interface TestEvent {
 	type: "test_event";
 }
 
-describe(`${is.name}`, () => {
-	test("should return true for matching events", () => {
+describe(is, () => {
+	it("should return true for matching events", () => {
 		const actual = is<TestEvent>("test_event", {
 			type: "test_event",
 			arbitrary: 123,
@@ -14,7 +14,7 @@ describe(`${is.name}`, () => {
 		expect(actual).toBe(true);
 	});
 
-	test("should return false for missmatching events", () => {
+	it("should return false for missmatching events", () => {
 		const actual = is<TestEvent>("test_event", {
 			type: "some_event",
 			arbitrary: 123,

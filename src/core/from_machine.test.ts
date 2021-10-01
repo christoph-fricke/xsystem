@@ -17,7 +17,7 @@ function createPingMachine() {
 }
 
 describe(fromMachine, () => {
-	test("should create a behavior from a machine definition", () => {
+	it("should create a behavior from a machine definition", () => {
 		//@ts-expect-error Typings currently do not work correctly
 		const behavior = fromMachine(createPingMachine());
 		const actor = spawnBehavior(behavior);
