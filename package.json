@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"license": "MIT",
 	"author": "Christoph Fricke <christoph@frickeonline.de> (https://christoph-fricke.de)",
-	"description": "Actor Building Blocks for XState",
+	"description": "Building Blocks for XState-based Actor Systems.",
 	"keywords": [
 		"XState",
 		"Actors",
@@ -11,12 +11,15 @@
 	],
 	"repository": "github:christoph-fricke/xsystem",
 	"type": "module",
+	"sideEffects": false,
+	"module": "./dist/main.js",
 	"types": "./dist/main.d.ts",
 	"exports": {
 		".": "./dist/main.js",
-		"./core": "./dist/core/mod.js",
-		"./event_bus": "./dist/actors/event_bus.js",
-		"./registry": "./dist/actors/registry.js"
+		"./behavior": "./dist/behavior/mod.js",
+		"./messaging": "./dist/messaging/mod.js",
+		"./subscriptions": "./dist/subscriptions/mod.js",
+		"./utils": "./dist/utils/mod.js"
 	},
 	"files": [
 		"dist",
