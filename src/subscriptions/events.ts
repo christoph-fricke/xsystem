@@ -1,5 +1,5 @@
 import type { EventObject } from "xstate";
-import type { BaseActorRef } from "../utils/types";
+import type { BaseActorRef } from "../utils/mod";
 import type { Wildcard } from "./wildcard";
 
 export type EventMatch<E extends EventObject> =

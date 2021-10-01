@@ -1,7 +1,7 @@
 import { ActorRef, AnyEventObject, EventObject, InvokeCreator } from "xstate";
 import type { EventMatch, SubEvent } from "../subscriptions/events";
 import { subscribe, unsubscribe } from "../subscriptions/events";
-import { BaseActorRef } from "../utils/types";
+import { BaseActorRef } from "./types";
 
 type SubscribeAble<
 	SEvent extends EventObject,

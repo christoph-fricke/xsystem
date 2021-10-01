@@ -1,6 +1,6 @@
 import type { AnyEventObject, EventObject } from "xstate";
-import { is } from "../utils/is_event";
-import type { BaseActorRef } from "../utils/types";
+import type { BaseActorRef } from "../utils/mod";
+import { is } from "../utils/mod";
 import { BucketMap } from "./bucket_map";
 import type {
 	EventMatch,

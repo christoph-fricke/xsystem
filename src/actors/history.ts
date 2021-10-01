@@ -1,5 +1,5 @@
 import { Behavior, EventObject } from "xstate";
-import { is } from "../utils/is_event";
+import { is } from "../utils/mod";
 
 interface UndoEvent extends EventObject {
 	type: "xsystem.undo";
