@@ -1,5 +1,14 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
+echo ""
+echo "Running lint-staged..."
 npx lint-staged
+
+echo ""
+echo "Running TypeScript check..."
 npx tsc --noEmit
+
+echo ""
+echo "All checks successful."
+echo ""
