@@ -1,6 +1,5 @@
-export { withHistory } from "./actors/history";
-export type { WithHistory } from "./actors/history";
-export { createRegistry } from "./actors/registry";
+export { withHistory } from "./behaviors/mod";
+export type { WithHistory } from "./behaviors/mod";
 
 export {
 	createEventBus,
