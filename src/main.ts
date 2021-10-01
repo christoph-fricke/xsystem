@@ -1,10 +1,16 @@
-export * from "./core/mod";
+export type { WithHistory } from "./actors/history";
+export { withHistory } from "./actors/history";
+
 export { createRegistry } from "./actors/registry";
-export { createEventBus, EventBus } from "./actors/event_bus";
-export { withHistory, WithHistory } from "./actors/history";
+
+export { fromActor, fromMachine } from "./core/mod";
+
+export type { EventBus, WithPubSub } from "./messaging/mod";
 export {
-	withPubSub,
-	WithPubSub,
-	Publish,
+	createEventBus,
 	createPublishAction,
-} from "./actors/pubsub";
+	withPubSub,
+} from "./messaging/mod";
+
+export type { Publish, SubEvent } from "./subscriptions/mod";
+export { subscribe, unsubscribe } from "./subscriptions/mod";

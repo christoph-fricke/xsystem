@@ -1,4 +1,5 @@
 const config = {
+	rootDir: "src",
 	testEnvironment: "node",
 	collectCoverageFrom: ["**/src/**"],
 	transform: {

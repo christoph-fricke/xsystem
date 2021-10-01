@@ -6,7 +6,7 @@ import {
 	EventObject,
 } from "xstate";
 import { spawnBehavior } from "xstate/lib/behaviors";
-import { is } from "../core/mod";
+import { is } from "../utils/event_predicates";
 
 // TODO: The registry should be able to resolve actors for actors that run in a
 // web-worker or other isolated contexts. It should support the creation of an

@@ -1,18 +1,22 @@
-import { ActionObject, AnyEventObject, Behavior, EventObject } from "xstate";
-import { createSubscriptions, SubEvents } from "../core/mod";
-
-/**
- * Function that should be used to publish an event. Is provided to the
- * extended behavior by the {@link} withPubSub HOB.
- */
-export type Publish<P extends EventObject> = (event: P) => void;
+import type {
+	ActionObject,
+	AnyEventObject,
+	Behavior,
+	EventObject,
+} from "xstate";
+import type { SubEvent, Publish } from "../subscriptions/mod";
+import {
+	createSubscriberStructure,
+	createPublishFunction,
+	handleSubscribeEvent,
+} from "../subscriptions/mod";
 
 /** Higher Order Behavior (HOB) to wrap a given {@link Behavior} with event subscription functionality. */
 export type WithPubSub<P extends EventObject, B> = B extends Behavior<
 	infer E,
 	infer S
 >
-	? Behavior<E | SubEvents<P, AnyEventObject>, S>
+	? Behavior<E | SubEvent<P, AnyEventObject>, S>
 	: never;
 
 /**
@@ -26,13 +30,13 @@ export type WithPubSub<P extends EventObject, B> = B extends Behavior<
 export function withPubSub<P extends EventObject, E extends EventObject, S>(
 	getBehavior: (publish: Publish<P>) => Behavior<E, S>
 ): WithPubSub<P, Behavior<E, S>> {
-	const subscribers = createSubscriptions<P>();
-	const behavior = getBehavior(subscribers.publish);
+	const subscribers = createSubscriberStructure<P>();
+	const behavior = getBehavior(createPublishFunction(subscribers));
 
 	return {
 		...behavior,
 		transition: (state, event, ctx) => {
-			if (subscribers.handle(event)) return state;
+			if (handleSubscribeEvent(subscribers, event)) return state;
 
 			return behavior.transition(state, event, ctx);
 		},

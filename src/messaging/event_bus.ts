@@ -1,7 +1,8 @@
 import { ActorRefFrom, Behavior, EventObject } from "xstate";
 import { createBroadcastChannel } from "../utils/broadcast_channel";
 import { getInstanceRandom } from "../utils/identifier";
-import { withPubSub, WithPubSub, Publish } from "./pubsub";
+import { Publish } from "../subscriptions/mod";
+import { withPubSub, WithPubSub } from "./pub_sub";
 
 type BaseBehavior<E extends EventObject> = Behavior<E, null>;
 
