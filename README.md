@@ -66,10 +66,6 @@ Adds undo/redo functionality to a given `Behavior`.
 
 ### `fromMachine`
 
-> (!) This utility currently has some TypeScript problems. See the relevant
-> [issue](https://github.com/christoph-fricke/xsystem/issues/1) for more
-> information.
-
 Creates a `Behavior` from a given machine that is created with `createMachine`
 or `model.createMachine`.
 
