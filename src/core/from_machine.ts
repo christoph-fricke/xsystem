@@ -5,13 +5,13 @@ import {
 	StateMachine,
 	Typestate,
 	interpret,
-	AnyInterpreter
+	AnyInterpreter,
 } from "xstate";
 
 /**
  * Creates a {@link Behavior} from a given machine. This makes the machine
  * composable with higher order behavior, e.g. `withPubSub`.
- * 
+ *
  * TODO: This function has major TS problems. I don't know why. I can't assign a created machine.
  */
 export function fromMachine<

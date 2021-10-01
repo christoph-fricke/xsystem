@@ -1,14 +1,14 @@
 import type { AnyEventObject, EventObject } from "xstate";
+import { is } from "../utils/is_event";
+import type { BaseActorRef } from "../utils/types";
+import { BucketMap } from "./bucket_map";
 import type {
+	EventMatch,
 	SubEvent,
 	SubscribeEvent,
 	UnsubscribeEvent,
-	EventMatch,
 } from "./events";
-import { is } from "../utils/event_predicates";
-import { BucketMap } from "../utils/bucket_map";
-import type { BaseActorRef } from "../utils/types";
-import { getAllWildcards } from "../utils/wildcard";
+import { getAllWildcards } from "./wildcard";
 
 type SubscriberMap<E extends EventObject> = BucketMap<
 	EventMatch<E>,

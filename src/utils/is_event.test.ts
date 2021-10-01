@@ -1,4 +1,4 @@
-import { is } from "./event_predicates";
+import { is } from "./is_event";
 
 interface TestEvent {
 	type: "test_event";

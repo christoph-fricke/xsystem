@@ -18,15 +18,15 @@ describe(getAllWildcards, () => {
 		expect(actual).toStrictEqual(expected);
 	});
 
-  it("should accept dot as a wildcard", () => {
-    const actual = getAllWildcards(".", "start.end");
+	it("should accept dot as a wildcard", () => {
+		const actual = getAllWildcards(".", "start.end");
 
-    expect(actual).toStrictEqual(["*", "start.*"]);
-  })
+		expect(actual).toStrictEqual(["*", "start.*"]);
+	});
 
-  it("should accept slash as a wildcard", () => {
-    const actual = getAllWildcards("/", "start/end");
+	it("should accept slash as a wildcard", () => {
+		const actual = getAllWildcards("/", "start/end");
 
-    expect(actual).toStrictEqual(["*", "start/*"]);
-  })
+		expect(actual).toStrictEqual(["*", "start/*"]);
+	});
 });

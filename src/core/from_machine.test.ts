@@ -22,7 +22,7 @@ describe(fromMachine, () => {
 		const behavior = fromMachine(createPingMachine());
 		const actor = spawnBehavior(behavior);
 
-    // Test that the spawned behavior works as expected
+		// Test that the spawned behavior works as expected
 		expect(actor.getSnapshot()?.value).toBe("ping");
 
 		actor.send({ type: "ping" });

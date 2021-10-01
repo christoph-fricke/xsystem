@@ -1,6 +1,6 @@
 import { AnyEventObject, EventObject } from "xstate";
 
-/** Type predicate to limit an {@link EventObject} to an specific event */
+/** Type predicate to limit an {@link EventObject} to a specific event. */
 export function is<E extends EventObject>(
 	type: E["type"],
 	event: AnyEventObject

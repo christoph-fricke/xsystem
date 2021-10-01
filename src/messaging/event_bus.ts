@@ -1,6 +1,6 @@
 import { ActorRefFrom, Behavior, EventObject } from "xstate";
-import { createBroadcastChannel } from "../utils/broadcast_channel";
-import { getInstanceRandom } from "../utils/identifier";
+import { createBroadcastChannel } from "./broadcast_channel";
+import { getInstanceID } from "./instance_id";
 import { Publish } from "../subscriptions/mod";
 import { withPubSub, WithPubSub } from "./pub_sub";
 
@@ -29,7 +29,7 @@ export function createEventBus<E extends EventObject>(
 
 	switch (options?.strategy) {
 		case "broadcast":
-			strategy = (pub) => broadcastBusBehavior(getInstanceRandom(), pub);
+			strategy = (pub) => broadcastBusBehavior(getInstanceID(), pub);
 			break;
 		case "global-broadcast":
 			strategy = globalBroadcastBusBehavior;

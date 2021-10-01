@@ -4,7 +4,7 @@ declare global {
 }
 
 /** Get a random number that remains the same during a session. */
-export function getInstanceRandom(): number {
+export function getInstanceID(): number {
 	if (typeof globalThis._xsystem_random === "undefined") {
 		globalThis._xsystem_random = Math.floor(Math.random() * 1_000_000);
 	}
