@@ -1,6 +1,8 @@
 export { withHistory } from "./behaviors/mod";
 export type { WithHistory } from "./behaviors/mod";
 
+export { createBehavior } from "./factories/mod";
+
 export {
 	createEventBus,
 	createPublishAction,
