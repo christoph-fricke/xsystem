@@ -1,14 +1,7 @@
-import type { AnyEventObject, Event } from "xstate";
 import { spawnBehavior } from "xstate/lib/behaviors";
 import { subscribe, unsubscribe } from "../subscriptions/mod";
+import { createMockSubscriber } from "../testing/create_mock";
 import { createEventBus, EventBus } from "./event_bus";
-
-function createMockSubscriber(): [typeof handler, typeof subscriber] {
-	const handler = jest.fn<void, [Event<AnyEventObject>]>();
-	const subscriber = { send: handler };
-
-	return [handler, subscriber];
-}
 
 type BasicEvent = { type: "basic.first" } | { type: "basic.second" };
 type ExtendedEvent = { type: "extended.first" } | { type: "extended.second" };

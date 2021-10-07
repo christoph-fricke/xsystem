@@ -1,28 +1,12 @@
-import type { AnyEventObject, Behavior, Event } from "xstate";
+import type { AnyEventObject } from "xstate";
 import { spawnBehavior } from "xstate/lib/behaviors";
 import { subscribe, unsubscribe } from "../subscriptions/mod";
+import {
+	createMockBehavior,
+	createMockSubscriber,
+} from "../testing/create_mock";
 import type { FromEventTypes } from "../utils/mod";
 import { withPubSub } from "./pub_sub";
-
-function createMockSubscriber(): [typeof handler, typeof subscriber] {
-	const handler = jest.fn<void, [Event<AnyEventObject>]>();
-	const subscriber = { send: handler };
-
-	return [handler, subscriber];
-}
-
-function createMockBehavior(): [
-	typeof handler,
-	Behavior<AnyEventObject, null>
-] {
-	const handler = jest.fn();
-	const behavior = {
-		initialState: null,
-		transition: handler,
-	};
-
-	return [handler, behavior];
-}
 
 describe(withPubSub, () => {
 	it("should pass received events to the given behavior", () => {
