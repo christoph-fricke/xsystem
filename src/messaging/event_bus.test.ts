@@ -20,7 +20,7 @@ describe(createEventBus, () => {
 		const event1: BasicEvent = { type: "basic.first" };
 		const event2: BasicEvent = { type: "basic.second" };
 
-		bus.send(subscribe<BasicEvent, AnyEventObject>(subscriber));
+		bus.send(subscribe(subscriber));
 		bus.send(event1);
 		bus.send(event2);
 
@@ -34,8 +34,8 @@ describe(createEventBus, () => {
 		const bus = spawnBehavior(createEventBus<BasicEvent>());
 		const event: BasicEvent = { type: "basic.first" };
 
-		bus.send(subscribe<BasicEvent, AnyEventObject>(subscriber1));
-		bus.send(subscribe<BasicEvent, AnyEventObject>(subscriber2));
+		bus.send(subscribe(subscriber1));
+		bus.send(subscribe(subscriber2));
 		bus.send(event);
 
 		expect(handler1).nthCalledWith(1, event);
@@ -47,8 +47,8 @@ describe(createEventBus, () => {
 		const [, subscriber2] = createMockSubscriber();
 		const bus = spawnBehavior(createEventBus<BasicEvent>());
 
-		bus.send(subscribe<BasicEvent, AnyEventObject>(subscriber1));
-		bus.send(subscribe<BasicEvent, AnyEventObject>(subscriber2));
+		bus.send(subscribe(subscriber1));
+		bus.send(subscribe(subscriber2));
 
 		expect(handler1).not.toBeCalled();
 	});
@@ -58,8 +58,8 @@ describe(createEventBus, () => {
 		const [, subscriber2] = createMockSubscriber();
 		const bus = spawnBehavior(createEventBus<BasicEvent>());
 
-		bus.send(subscribe<BasicEvent, AnyEventObject>(subscriber1));
-		bus.send(unsubscribe<BasicEvent, AnyEventObject>(subscriber2));
+		bus.send(subscribe(subscriber1));
+		bus.send(unsubscribe(subscriber2));
 
 		expect(handler1).not.toBeCalled();
 	});
@@ -78,7 +78,7 @@ describe(createEventBus, () => {
 		const event1: BasicEvent = { type: "basic.first" };
 		const event2: ExtendedEvent = { type: "extended.first" };
 
-		bus.send(subscribe<BasicEvent, AnyEventObject>(subscriber, ["basic.*"]));
+		bus.send(subscribe(subscriber, ["basic.*"]));
 		bus.send(event1);
 		bus.send(event2);
 

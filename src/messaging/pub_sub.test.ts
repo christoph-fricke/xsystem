@@ -1,7 +1,7 @@
-import { AnyEventObject, Event } from "xstate";
+import type { AnyEventObject, Behavior, Event } from "xstate";
 import { spawnBehavior } from "xstate/lib/behaviors";
 import { subscribe, unsubscribe } from "../subscriptions/mod";
-import { FromEventTypes } from "../utils/types";
+import type { FromEventTypes } from "../utils/mod";
 import { withPubSub } from "./pub_sub";
 
 function createMockSubscriber(): [typeof handler, typeof subscriber] {
@@ -11,12 +11,15 @@ function createMockSubscriber(): [typeof handler, typeof subscriber] {
 	return [handler, subscriber];
 }
 
-function createMockBehavior(): [typeof handler, typeof behavior] {
+function createMockBehavior(): [
+	typeof handler,
+	Behavior<AnyEventObject, null>
+] {
 	const handler = jest.fn();
-	const behavior = withPubSub(() => ({
+	const behavior = {
 		initialState: null,
 		transition: handler,
-	}));
+	};
 
 	return [handler, behavior];
 }
