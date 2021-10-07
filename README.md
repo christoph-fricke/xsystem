@@ -2,7 +2,7 @@
 
 [![GitHub issues](https://shields.io/github/issues-raw/christoph-fricke/xsystem?style=for-the-badge)](https://github.com/christoph-fricke/xsystem/issues)
 [![latest release](https://shields.io/github/v/release/christoph-fricke/xsystem?style=for-the-badge)](https://github.com/christoph-fricke/xsystem/releases/latest)
-![dependencies](https://shields.io/david/christoph-fricke/xsystem?style=for-the-badge)
+![dependencies](https://img.shields.io/badge/dependencies-none-success?style=for-the-badge)
 
 > Building Blocks for [XState](https://github.com/statelyai/xstate)-based Actor
 > Systems.
@@ -22,7 +22,7 @@ another actor.
 
 ## Installation
 
-This package is bundled and distributes with ESM imports/exports. Furthermore,
+This package is bundled and distributed with ESM imports/exports. Furthermore,
 `xsystem` has a peer dependency to `xstate`.
 
 ```bash
@@ -80,7 +80,7 @@ event type.
 
 ## Related Work
 
-Similar concepts are explored by the following packages:
+Similar concepts for XState are explored by the following packages:
 
 - [xstate-behaviors by Chris Shank](https://github.com/ChrisShank/xstate-behaviors)
 - [xstate-pubsub by Chance](https://github.com/chanced/xstate-pubsub)
