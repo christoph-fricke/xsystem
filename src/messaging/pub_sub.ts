@@ -1,9 +1,4 @@
-import type {
-	ActionObject,
-	AnyEventObject,
-	Behavior,
-	EventObject,
-} from "xstate";
+import type { ActionObject, Behavior, EventObject } from "xstate";
 import type { SubEvent, Publish } from "../subscriptions/mod";
 import {
 	createSubscriberStructure,
@@ -16,7 +11,7 @@ export type WithPubSub<P extends EventObject, B> = B extends Behavior<
 	infer E,
 	infer S
 >
-	? Behavior<E | SubEvent<P, AnyEventObject>, S>
+	? Behavior<E | SubEvent<P>, S>
 	: never;
 
 /**
