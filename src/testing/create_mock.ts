@@ -24,7 +24,7 @@ export function createMockBehavior<
 	S = null
 >(
 	initialState: S | null = null
-): [jest.Mock<void, [S, E, ActorContext<E, S>]>, Behavior<E, S | null>] {
+): [jest.Mock<S, [S, E, ActorContext<E, S>]>, Behavior<E, S | null>] {
 	const handler = jest.fn();
 	const behavior = {
 		initialState,

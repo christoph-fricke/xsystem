@@ -1,116 +1,161 @@
 import { spawnBehavior } from "xstate/lib/behaviors";
-import { withHistory, undoEvent, redoEvent } from "./history";
+import { createMockBehavior } from "../testing/create_mock";
+import { withHistory, undo, redo } from "./history";
 
-describe(`${undoEvent.name}`, () => {
-	test("should construct an undo event", () => {
-		const event = undoEvent();
+describe(undo, () => {
+	it("should construct an undo event", () => {
+		const event = undo();
 
 		expect(event).toStrictEqual({ type: "xsystem.undo" });
 	});
 });
 
-describe(`${redoEvent.name}`, () => {
-	test("should construct an redo event", () => {
-		const event = redoEvent();
+describe(redo, () => {
+	it("should construct an redo event", () => {
+		const event = redo();
 
 		expect(event).toStrictEqual({ type: "xsystem.redo" });
 	});
 });
 
-describe(`${withHistory.name}`, () => {
-	test("should return the wrapped initial state", () => {
-		const behavior = withHistory({
-			initialState: "Initial",
-			transition: (state) => state,
-		});
+describe(withHistory, () => {
+	it("should return the wrapped initial state", () => {
+		const [, behavior] = createMockBehavior("Initial");
+		const wrapped = withHistory(behavior);
 
-		expect(behavior.initialState).toBe("Initial");
+		expect(wrapped.initialState).toBe("Initial");
 	});
 
-	test("should call the wrapped start behavior", () => {
-		const mock = jest.fn().mockReturnValue("Start Return");
-		const behavior = withHistory({
-			initialState: "Initial",
-			transition: (state) => state,
-			start: mock,
-		});
+	it("should forward events to the wrapped behavior", () => {
+		const [handler, behavior] = createMockBehavior("Initial");
+		const actor = spawnBehavior(withHistory(behavior));
 
-		// Creates an actors which calls `start`
-		const actor = spawnBehavior(behavior);
-
-		expect(mock).toBeCalledTimes(1);
-		expect(actor.getSnapshot()).toBe("Start Return");
-	});
-
-	test("should forward event to the wrapped behavior", () => {
-		const mock = jest.fn();
-		const behavior = withHistory({
-			initialState: "Initial",
-			transition: mock,
-		});
-
-		const actor = spawnBehavior(behavior);
 		actor.send({ type: "event" });
 
-		expect(mock).toBeCalledTimes(1);
-		expect(mock).toBeCalledWith(
+		expect(handler).toBeCalledTimes(1);
+		expect(handler).toBeCalledWith(
 			"Initial",
 			{ type: "event" },
 			expect.anything()
 		);
 	});
 
+	it("should overwrite previously produced state when an event is changed in the middle of the history", () => {
+		const [handler, behavior] = createMockBehavior("Initial");
+		handler.mockReturnValueOnce("First");
+		handler.mockReturnValueOnce("Second");
+		const actor = spawnBehavior(withHistory(behavior));
+
+		// Create a history and go back to the middle
+		actor.send("transition");
+		actor.send("transition");
+		expect(actor.getSnapshot()).toBe("Second");
+		actor.send(undo());
+		actor.send(undo());
+		expect(actor.getSnapshot()).toBe("Initial");
+
+		// Sending another event removes the previously produced state
+		handler.mockReturnValueOnce("NewState");
+		actor.send("transition");
+		expect(actor.getSnapshot()).toBe("NewState");
+		actor.send(undo());
+		expect(actor.getSnapshot()).toBe("Initial");
+
+		// No change to find "First" and "Second" in the future
+		actor.send(redo());
+		expect(actor.getSnapshot()).toBe("NewState");
+		actor.send(redo());
+		expect(actor.getSnapshot()).toBe("NewState");
+	});
+
 	describe(`sending undo`, () => {
-		test("should not transition the wrapped behavior", () => {
-			const mock = jest.fn();
-			const behavior = withHistory({
-				initialState: "Initial",
-				transition: mock,
-			});
+		it("should not transition the wrapped behavior", () => {
+			const [handler, behavior] = createMockBehavior();
 
-			const actor = spawnBehavior(behavior);
-			actor.send(undoEvent());
+			const actor = spawnBehavior(withHistory(behavior));
+			actor.send(undo());
 
-			expect(mock).not.toBeCalled();
+			expect(handler).not.toBeCalled();
 		});
 
-		test("should return the initialState when no other events have been sent", () => {
-			const behavior = withHistory({
-				initialState: "Initial",
-				transition: () => "",
-			});
+		it("should return the initialState when no other events have been sent yet", () => {
+			const [, behavior] = createMockBehavior("Initial");
+			const actor = spawnBehavior(withHistory(behavior));
 
-			const actor = spawnBehavior(behavior);
-			actor.send(undoEvent());
+			actor.send(undo());
 
+			expect(actor.getSnapshot()).toBe(behavior.initialState);
+		});
+
+		it("should return the previous state of the actor when multiple state updates exist", () => {
+			const [handler, behavior] = createMockBehavior("Initial");
+			handler.mockReturnValueOnce("First");
+			handler.mockReturnValueOnce("Second");
+			const actor = spawnBehavior(withHistory(behavior));
+
+			// Cause two state updates in the actor
+			actor.send("transition");
+			actor.send("transition");
+			expect(actor.getSnapshot()).toBe("Second");
+
+			// Undo return the previous state
+			actor.send(undo());
+			expect(actor.getSnapshot()).toBe("First");
+			actor.send(undo());
 			expect(actor.getSnapshot()).toBe("Initial");
 		});
 	});
 
 	describe(`sending redo`, () => {
-		test("should not transition the wrapped behavior", () => {
-			const mock = jest.fn();
-			const behavior = withHistory({
-				initialState: "Initial",
-				transition: mock,
-			});
+		it("should not transition the wrapped behavior", () => {
+			const [handler, behavior] = createMockBehavior();
+			const actor = spawnBehavior(withHistory(behavior));
 
-			const actor = spawnBehavior(behavior);
-			actor.send(redoEvent());
+			actor.send(redo());
 
-			expect(mock).not.toBeCalled();
+			expect(handler).not.toBeCalled();
 		});
 
-		test("should return the initialState when no other events have been sent", () => {
-			const behavior = withHistory({
-				initialState: "Initial",
-				transition: () => "",
-			});
+		it("should return the initialState when no other events have been sent", () => {
+			const [, behavior] = createMockBehavior("Initial");
+			const actor = spawnBehavior(withHistory(behavior));
 
-			const actor = spawnBehavior(behavior);
-			actor.send(redoEvent());
+			actor.send(redo());
 
+			expect(actor.getSnapshot()).toBe(behavior.initialState);
+		});
+
+		it("should return the next state when redo is sent after undo", () => {
+			const [handler, behavior] = createMockBehavior("Initial");
+			handler.mockReturnValueOnce("NewState");
+			const actor = spawnBehavior(withHistory(behavior));
+
+			actor.send("transition");
+			actor.send(undo());
+			actor.send(redo());
+
+			expect(actor.getSnapshot()).toBe("NewState");
+		});
+
+		it("should return the next state of the actor when undo has been used before", () => {
+			const [handler, behavior] = createMockBehavior("Initial");
+			handler.mockReturnValueOnce("First");
+			handler.mockReturnValueOnce("Second");
+			const actor = spawnBehavior(withHistory(behavior));
+
+			// Cause two state updates in the actor
+			actor.send("transition");
+			actor.send("transition");
+			expect(actor.getSnapshot()).toBe("Second");
+
+			// The state history can be walked back and forth
+			actor.send(undo());
+			actor.send(undo());
 			expect(actor.getSnapshot()).toBe("Initial");
+			actor.send(redo());
+			expect(actor.getSnapshot()).toBe("First");
+			actor.send(redo());
+			expect(actor.getSnapshot()).toBe("Second");
 		});
 	});
 });
