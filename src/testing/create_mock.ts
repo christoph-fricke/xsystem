@@ -4,7 +4,9 @@ import type {
 	Event,
 	EventObject,
 	ActorContext,
+	ActorRef,
 } from "xstate";
+import { toActorRef } from "xstate/lib/Actor";
 import type { BaseActorRef } from "../utils/mod";
 
 /** Creates a minimal subscriber and exposes the mocked send function. */
@@ -16,6 +18,16 @@ export function createMockSubscriber<E extends EventObject>(): [
 	const subscriber = { send: handler };
 
 	return [handler, subscriber];
+}
+
+/** Creates a minimal actor ref with and exposes the mocked send function. */
+export function createMockActor<
+	E extends EventObject = AnyEventObject,
+	S = null
+>(): [jest.Mock<void, [Event<E>]>, ActorRef<E, S>] {
+	const send = jest.fn();
+	const actor = toActorRef({ send });
+	return [send, actor];
 }
 
 /** Creates a minimal function and exposes the mocked transition function. */
