@@ -1,31 +1,28 @@
 /** Data structure to manage multiple unique values that are assigned to a key. */
 export class BucketMap<K, V> {
-	#buckets: Map<K, Set<V>>;
+	private _buckets: Map<K, Set<V>>;
 
 	constructor() {
-		this.#buckets = new Map();
+		this._buckets = new Map();
 	}
 
-	/**
-	 * Removes a value from every bucket.
-	 * @returns `true` if at least one bucket has been affected.
-	 */
+	/** Removes a given value from every bucket and reports if it affected any buckets. */
 	delete(value: V): boolean {
 		let affected = false;
-		for (const bucket of this.#buckets.values()) {
+		for (const bucket of this._buckets.values()) {
 			affected = bucket.delete(value) ? true : affected;
 		}
 		return affected;
 	}
 
-	/** @returns the bucket for a given key. */
+	/** Returns the bucket for a given key or undefined of the key is not present. */
 	get(key: K): Set<V> | undefined {
-		return this.#buckets.get(key);
+		return this._buckets.get(key);
 	}
 
-	/** @returns `true` when a bucket exists for a given key. */
+	/** Checks whether or not a bucket for the given key exists. */
 	has(key: K): boolean {
-		return this.#buckets.has(key);
+		return this._buckets.has(key);
 	}
 
 	/**
@@ -40,36 +37,33 @@ export class BucketMap<K, V> {
 			return this;
 		}
 
-		this.#buckets.set(key, new Set<V>().add(value));
+		this._buckets.set(key, new Set<V>().add(value));
 		return this;
 	}
 
-	entries(): IterableIterator<[K, Set<V>]> {
-		return this.#buckets.entries();
-	}
-
+	/** Returns an {@link IterableIterator} for stored keys.	 */
 	keys(): IterableIterator<K> {
-		return this.#buckets.keys();
+		return this._buckets.keys();
 	}
 
 	/**
-	 * Returns an {@link IterableIterator} for stored values.
+	 * Returns an {@link IterableIterator} for the stored values.
 	 * Contains the values of a single bucket of a key is provided.
 	 * Otherwise it iterates over the values of all buckets.
 	 */
 	values(key?: K): IterableIterator<V> {
 		if (typeof key !== "undefined")
-			return this.#buckets.get(key)?.values() ?? new Set<V>().values();
+			return this._buckets.get(key)?.values() ?? new Set<V>().values();
 
 		// Collect all buckets into a mega bucket
 		const megaBucket = new Set<V>();
-		for (const bucket of this.#buckets.values())
+		for (const bucket of this._buckets.values())
 			for (const value of bucket) megaBucket.add(value);
 
 		return megaBucket.values();
 	}
 
 	[Symbol.iterator](): IterableIterator<[K, Set<V>]> {
-		return this.entries();
+		return this._buckets.entries();
 	}
 }

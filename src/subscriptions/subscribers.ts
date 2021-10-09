@@ -10,7 +10,7 @@ import type {
 } from "./events";
 import { getAllWildcards } from "./wildcard";
 
-type SubscriberMap<E extends EventObject> = BucketMap<
+export type SubscriberMap<E extends EventObject> = BucketMap<
 	EventMatch<E>,
 	BaseActorRef<AnyEventObject>
 >;
