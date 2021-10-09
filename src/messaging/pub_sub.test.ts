@@ -6,7 +6,7 @@ import {
 	createMockSubscriber,
 } from "../testing/create_mock";
 import type { FromEventTypes } from "../utils/mod";
-import { withPubSub } from "./pub_sub";
+import { createPublishAction, withPubSub } from "./pub_sub";
 
 describe(withPubSub, () => {
 	it("should pass received events to the given behavior", () => {
@@ -95,5 +95,36 @@ describe(withPubSub, () => {
 			expect(handler1).toBeCalledTimes(1);
 			expect(handler2).toBeCalledTimes(1);
 		});
+	});
+});
+
+describe(createPublishAction, () => {
+	it("should return a function that is named 'publish'", () => {
+		// Expecting that the function is named ensures a nice call stack
+		const publish = jest.fn();
+
+		const publishAction = createPublishAction(publish);
+
+		expect(publishAction.name).toBe("publishAction");
+	});
+
+	it("should return an action creator", () => {
+		const publish = jest.fn();
+		const publishAction = createPublishAction(publish);
+
+		const action = publishAction({ type: "test" });
+
+		expect(action).toStrictEqual({ type: "publish", exec: expect.anything() });
+	});
+
+	it("should call publish when the action is executed", () => {
+		const publish = jest.fn();
+		const publishAction = createPublishAction(publish);
+
+		const action = publishAction({ type: "test" });
+		// @ts-expect-error We don't care about the arguments
+		action.exec?.();
+
+		expect(publish).nthCalledWith(1, { type: "test" });
 	});
 });
