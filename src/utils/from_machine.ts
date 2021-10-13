@@ -23,14 +23,14 @@ export function fromMachine<
 	machine: StateMachine<C, S, E, TS>,
 	options?: Parameters<typeof interpret>["1"]
 ): Behavior<E, State<C, E, S, TS>> {
-	let service: Interpreter<C, S, E, TS> | undefined;
+	let service: Interpreter<C, S, E, TS>;
 
 	// TODO: Stop machines once https://github.com/statelyai/xstate/pull/2560 is merged
 
 	return {
 		initialState: machine.initialState,
-		transition: (state, event) => {
-			return service?.send(event) ?? state;
+		transition: (_, event) => {
+			return service.send(event);
 		},
 		start: (ctx) => {
 			service = interpret(machine, {

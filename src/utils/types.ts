@@ -12,3 +12,6 @@ export interface BaseActorRef<E extends EventObject>
 	extends BuggedBaseActorRef<E> {
 	send: Sender<E>;
 }
+
+/** Construct event objects from a union of event strings. */
+export type FromEventTypes<T extends string> = { type: T };

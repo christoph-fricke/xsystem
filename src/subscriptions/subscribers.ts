@@ -10,9 +10,9 @@ import type {
 } from "./events";
 import { getAllWildcards } from "./wildcard";
 
-type SubscriberMap<E extends EventObject> = BucketMap<
+export type SubscriberMap<E extends EventObject> = BucketMap<
 	EventMatch<E>,
-	BaseActorRef<E | AnyEventObject>
+	BaseActorRef<AnyEventObject>
 >;
 
 /**
@@ -30,14 +30,14 @@ export function createSubscriberStructure<
 export function handleSubscribeEvent<E extends EventObject>(
 	subscribers: SubscriberMap<E>,
 	event: AnyEventObject
-): event is SubEvent<E, AnyEventObject> {
-	if (is<SubscribeEvent<E, AnyEventObject>>("xsystem.subscribe", event)) {
-		for (const type of event.events) subscribers.add(type, event.ref);
+): event is SubEvent<E> {
+	if (is<SubscribeEvent<E>>("xsystem.subscribe", event)) {
+		for (const type of event.matches) subscribers.add(type, event.ref);
 
 		return true;
 	}
 
-	if (is<UnsubscribeEvent<E, AnyEventObject>>("xsystem.unsubscribe", event)) {
+	if (is<UnsubscribeEvent>("xsystem.unsubscribe", event)) {
 		subscribers.delete(event.ref);
 
 		return true;

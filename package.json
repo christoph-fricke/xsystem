@@ -1,6 +1,6 @@
 {
 	"name": "xsystem",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"license": "MIT",
 	"author": "Christoph Fricke <christoph@frickeonline.de> (https://christoph-fricke.de)",
 	"description": "Building Blocks for XState-based Actor Systems.",
@@ -23,6 +23,7 @@
 	},
 	"files": [
 		"dist",
+		"!**/*.test.*",
 		"README.md",
 		"LICENSE"
 	],
