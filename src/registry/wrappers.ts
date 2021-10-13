@@ -1,12 +1,7 @@
 import { ActorRef, AnyEventObject } from "xstate";
 import { toEventObject } from "xstate/lib/utils";
 import { BaseActorRef } from "../utils/mod";
-import {
-	RegisterResponseEvent,
-	register,
-	QueryResponseEvent,
-	query,
-} from "./events";
+import { RegisterResponseEvent, register } from "./events";
 import { Registry } from "./registry";
 
 export function registerActor(
@@ -28,14 +23,6 @@ export function registerActor(
 export function getActor<A extends ActorRef<AnyEventObject, unknown>>(
 	registry: Registry,
 	id: string
-): Promise<A | undefined> {
-	return new Promise((resolve) => {
-		const origin: BaseActorRef<QueryResponseEvent> = {
-			send: (e) => {
-				const event = toEventObject(e);
-				resolve(event.actor as A | undefined);
-			},
-		};
-		registry.send(query(id, origin));
-	});
+): A | undefined {
+	return registry.getSnapshot()?.get(id) as A | undefined;
 }
