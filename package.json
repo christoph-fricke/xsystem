@@ -23,6 +23,7 @@
 	},
 	"files": [
 		"dist",
+		"!**/*.test.*",
 		"README.md",
 		"LICENSE"
 	],
