@@ -6,12 +6,10 @@ import type {
 } from "xstate";
 import { EventMatch, getAllWildcards } from "../subscriptions/mod";
 
-type StartCallback<E extends EventObject, S> = Behavior<E, S>["start"];
-type HandlerCallback<E extends EventObject, S> = (
-	state: S,
-	event: E,
+type StartCallback<E extends EventObject, S> = (
 	ctx: ActorContext<E, S>
-) => S;
+) => S | undefined;
+type HandlerCallback<E extends EventObject, S> = Behavior<E, S>["transition"];
 
 interface Builder<E extends EventObject, S> {
 	initialState(state: S): void;
@@ -28,8 +26,8 @@ export function createBehavior<
 	E extends EventObject = AnyEventObject,
 	S = undefined
 >(factory: (builder: Builder<E, S>) => void): Behavior<E, S> {
-	let _initialState: S | undefined = undefined;
-	let _start: StartCallback<E, S> | undefined = undefined;
+	let _initialState: S | undefined;
+	let _start: StartCallback<E, S> | undefined;
 	const handlers: Map<EventMatch<E>, HandlerCallback<E, S>> = new Map();
 
 	const initialState: Builder<E, S>["initialState"] = (state) => {
@@ -52,7 +50,9 @@ export function createBehavior<
 
 	return {
 		initialState: _initialState,
-		start: _start,
+		start: (ctx) => {
+			return _start?.(ctx) ?? (_initialState as S);
+		},
 		transition: (state, event, ctx) => {
 			let newState: S = state;
 			const wildcards = getAllWildcards(".", event.type);
