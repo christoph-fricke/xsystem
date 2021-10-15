@@ -1,5 +1,6 @@
 import type {
 	AnyEventObject,
+	BaseActorRef,
 	Behavior,
 	Event,
 	EventObject,
@@ -7,7 +8,6 @@ import type {
 	ActorRef,
 } from "xstate";
 import { toActorRef } from "xstate/lib/Actor";
-import type { BaseActorRef } from "../utils/mod";
 
 /** Creates a minimal subscriber and exposes the mocked send function. */
 export function createMockSubscriber<E extends EventObject>(): [

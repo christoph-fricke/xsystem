@@ -1,5 +1,4 @@
-import type { AnyEventObject, EventObject } from "xstate";
-import type { BaseActorRef } from "../utils/mod";
+import type { AnyEventObject, EventObject, BaseActorRef } from "xstate";
 import { is } from "../utils/mod";
 import { BucketMap } from "./bucket_map";
 import type {
