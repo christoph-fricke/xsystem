@@ -1,5 +1,9 @@
-import { ActorRef, AnyEventObject, EventObject } from "xstate";
-import { BaseActorRef } from "../utils/mod";
+import type {
+	ActorRef,
+	AnyEventObject,
+	EventObject,
+	BaseActorRef,
+} from "xstate";
 
 export interface RegisterEvent extends EventObject {
 	type: "xsystem.registry.register";
@@ -7,7 +11,7 @@ export interface RegisterEvent extends EventObject {
 	origin?: BaseActorRef<RegisterResponseEvent>;
 }
 
-export function register(
+export function registerRequest(
 	actor: RegisterEvent["actor"],
 	origin?: RegisterEvent["origin"]
 ): RegisterEvent {
@@ -29,36 +33,5 @@ export function registerResponse(
 	return {
 		type: "xsystem.registry.register.response",
 		state,
-	};
-}
-
-export interface QueryEvent extends EventObject {
-	type: "xsystem.registry.query";
-	id: string;
-	origin: BaseActorRef<QueryResponseEvent>;
-}
-
-export function query(id: string, origin: QueryEvent["origin"]): QueryEvent {
-	return {
-		type: "xsystem.registry.query",
-		id,
-		origin,
-	};
-}
-
-export interface QueryResponseEvent extends EventObject {
-	type: "xsystem.registry.query.response";
-	state: "found" | "notfound";
-	actor?: ActorRef<AnyEventObject, unknown>;
-}
-
-export function queryResponse(
-	state: QueryResponseEvent["state"],
-	actor: QueryResponseEvent["actor"]
-): QueryResponseEvent {
-	return {
-		type: "xsystem.registry.query.response",
-		state,
-		actor,
 	};
 }

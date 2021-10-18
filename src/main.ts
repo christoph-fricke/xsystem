@@ -13,3 +13,10 @@ export type { Publish, SubEvent } from "./subscriptions/mod";
 
 export { fromActor, fromMachine, is } from "./utils/mod";
 export type { FromEventTypes } from "./utils/mod";
+
+export type {
+	Registry,
+	RegisterEvent,
+	RegisterResponseEvent,
+} from "./registry/mod";
+export { createRegistry, register, query } from "./registry/mod";

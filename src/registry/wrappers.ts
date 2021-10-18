@@ -1,10 +1,13 @@
-import { ActorRef, AnyEventObject } from "xstate";
+import type { ActorRef, AnyEventObject, BaseActorRef } from "xstate";
 import { toEventObject } from "xstate/lib/utils";
-import { BaseActorRef } from "../utils/mod";
-import { RegisterResponseEvent, register } from "./events";
-import { Registry } from "./registry";
+import {
+	RegisterResponseEvent,
+	registerRequest as registerRequest,
+} from "./events";
+import type { Registry } from "./registry";
 
-export function registerActor(
+/** Registers an actor reference in the given registry. Resolves to true if the registration is successful. */
+export function register(
 	registry: Registry,
 	actor: ActorRef<AnyEventObject, unknown>
 ): Promise<boolean> {
@@ -16,11 +19,12 @@ export function registerActor(
 				else resolve(true);
 			},
 		};
-		registry.send(register(actor, origin));
+		registry.send(registerRequest(actor, origin));
 	});
 }
 
-export function getActor<A extends ActorRef<AnyEventObject, unknown>>(
+/** Query the given registry for an actor with the given ID and returns it. */
+export function query<A extends ActorRef<AnyEventObject, unknown>>(
 	registry: Registry,
 	id: string
 ): A | undefined {

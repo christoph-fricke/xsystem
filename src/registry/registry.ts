@@ -1,14 +1,9 @@
-import { ActorRef, ActorRefFrom, AnyEventObject, Behavior } from "xstate";
+import type { ActorRef, ActorRefFrom, AnyEventObject, Behavior } from "xstate";
 import { is } from "../utils/mod";
-import {
-	QueryEvent,
-	queryResponse,
-	RegisterEvent,
-	registerResponse,
-} from "./events";
+import { RegisterEvent, registerResponse } from "./events";
 
 export type RegistryState = Map<string, ActorRef<AnyEventObject, unknown>>;
-export type RegistryEvent = RegisterEvent | QueryEvent;
+export type RegistryEvent = RegisterEvent;
 
 export type RegistryBehavior = Behavior<RegistryEvent, RegistryState>;
 export type Registry = ActorRefFrom<RegistryBehavior>;
@@ -25,15 +20,6 @@ export function createRegistry(): RegistryBehavior {
 
 				state.set(event.actor.id, event.actor);
 				event.origin?.send(registerResponse("success"));
-
-				return state;
-			}
-
-			if (is<QueryEvent>("xsystem.registry.query", event)) {
-				const actor = state.get(event.id);
-				const res = typeof actor !== "undefined" ? "found" : "notfound";
-
-				event.origin.send(queryResponse(res, actor));
 
 				return state;
 			}
