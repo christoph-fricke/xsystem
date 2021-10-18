@@ -6,7 +6,7 @@ describe(createBehavior, () => {
 	describe("defining an initial state", () => {
 		it("should throw an error if no initial state is provided", () => {
 			const call = () => createBehavior(() => void 0);
-			expect(call).toThrow(/initial state/i);
+			expect(call).toThrowError(/initial state/i);
 		});
 
 		it("should build a behavior with the defined initial state", () => {

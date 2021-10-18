@@ -5,6 +5,7 @@ import type {
 	ActorContext,
 } from "xstate";
 import { EventMatch, getAllWildcards } from "../subscriptions/mod";
+import { assertDefined } from "../utils/mod";
 
 type StartCallback<E extends EventObject, S> = (
 	ctx: ActorContext<E, S>
@@ -44,9 +45,7 @@ export function createBehavior<
 
 	// Call the factory to receive the definition for the behavior.
 	factory({ initialState, start, on });
-
-	if (typeof _initialState === "undefined")
-		throw new Error("Factory must define an initial state!");
+	assertDefined(_initialState, "Factory must define an initial state!");
 
 	return {
 		initialState: _initialState,
@@ -58,10 +57,10 @@ export function createBehavior<
 			const wildcards = getAllWildcards(".", event.type);
 
 			for (const type of wildcards) {
-				newState = handlers.get(type)?.(state, event, ctx) ?? newState;
+				newState = handlers.get(type)?.(newState, event, ctx) ?? newState;
 			}
 
-			return handlers.get(event.type)?.(state, event, ctx) ?? newState;
+			return handlers.get(event.type)?.(newState, event, ctx) ?? newState;
 		},
 	};
 }
