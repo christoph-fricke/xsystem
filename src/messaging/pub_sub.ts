@@ -19,8 +19,7 @@ export type WithPubSub<P extends EventObject, B> = B extends Behavior<
  * Other actors are able to subscribe and unsubscribe to events published by
  * the wrapped {@link Behavior}.
  *
- * To publish an event, a {@link Behavior} should send itself an {@link PublishEvent}
- * with the provided {@link publish} function.
+ * To publish an event, a {@link Behavior} should call the provided `publish` function.
  */
 export function withPubSub<P extends EventObject, E extends EventObject, S>(
 	getBehavior: (publish: Publish<P>) => Behavior<E, S>

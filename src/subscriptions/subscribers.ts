@@ -1,5 +1,4 @@
-import type { AnyEventObject, EventObject } from "xstate";
-import type { BaseActorRef } from "../utils/mod";
+import type { AnyEventObject, EventObject, BaseActorRef } from "xstate";
 import { is } from "../utils/mod";
 import { BucketMap } from "./bucket_map";
 import type {
@@ -10,7 +9,7 @@ import type {
 } from "./events";
 import { getAllWildcards } from "./wildcard";
 
-type SubscriberMap<E extends EventObject> = BucketMap<
+export type SubscriberMap<E extends EventObject> = BucketMap<
 	EventMatch<E>,
 	BaseActorRef<AnyEventObject>
 >;

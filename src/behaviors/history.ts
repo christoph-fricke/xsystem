@@ -1,11 +1,11 @@
-import { Behavior, EventObject } from "xstate";
+import type { Behavior, EventObject } from "xstate";
 import { is } from "../utils/mod";
 
 interface UndoEvent extends EventObject {
 	type: "xsystem.undo";
 }
 
-export function undoEvent(): UndoEvent {
+export function undo(): UndoEvent {
 	return { type: "xsystem.undo" };
 }
 
@@ -13,7 +13,7 @@ interface RedoEvent extends EventObject {
 	type: "xsystem.redo";
 }
 
-export function redoEvent(): RedoEvent {
+export function redo(): RedoEvent {
 	return { type: "xsystem.redo" };
 }
 
@@ -40,12 +40,19 @@ export function withHistory<E extends EventObject, S>(
 		transition: (state, event, ctx) => {
 			if (is<UndoEvent>("xsystem.undo", event)) {
 				// "undo" is a no-op if there is no previous state
-				return index > 0 ? history[--index] : history[index];
+				const previousState = index > 0 ? history[--index] : history[index];
+
+				assertValue(previousState);
+				return previousState;
 			}
 
 			if (is<RedoEvent>("xsystem.redo", event)) {
 				// "redo" is a no-op if there is no future state
-				return index + 1 < history.length ? history[++index] : history[index];
+				const futureState =
+					index + 1 < history.length ? history[++index] : history[index];
+
+				assertValue(futureState);
+				return futureState;
 			}
 
 			const nextState = behavior.transition(state, event, ctx);
@@ -56,4 +63,9 @@ export function withHistory<E extends EventObject, S>(
 			return nextState;
 		},
 	};
+}
+
+function assertValue<T>(value: T | undefined): asserts value is T {
+	if (value === undefined)
+		throw new Error("Undo/Redo used an index that is out of bounds!");
 }

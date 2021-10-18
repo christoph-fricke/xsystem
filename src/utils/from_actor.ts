@@ -1,29 +1,26 @@
-import { ActorRef, AnyEventObject, EventObject, InvokeCreator } from "xstate";
+import type { ActorRef, EventObject, InvokeCreator } from "xstate";
 import type { EventMatch, SubEvent } from "../subscriptions/events";
 import { subscribe, unsubscribe } from "../subscriptions/events";
 
-type SubscribeAble<
-	P extends EventObject,
-	Actor = ActorRef<AnyEventObject>
-> = Actor extends ActorRef<infer E, infer S>
-	? ActorRef<E | SubEvent<P>, S>
-	: never;
+type ActorRefResolver<C, E extends EventObject, P extends EventObject> =
+	| ActorRef<SubEvent<P>, unknown>
+	| ((ctx: C, e: E) => ActorRef<SubEvent<P>, unknown>);
 
 /** Creates an invoke callback that subscribes to the events published by a given actor. */
-export function fromActor<TContext, TEvent extends EventObject>(
-	getActor: (ctx: TContext, e: TEvent) => SubscribeAble<TEvent>,
-	matches?: EventMatch<TEvent>[]
-): InvokeCreator<TContext, TEvent> {
+export function fromActor<C, E extends EventObject, P extends EventObject>(
+	actor: ActorRefResolver<C, E, P>,
+	matches?: EventMatch<P>[]
+): InvokeCreator<C, E> {
 	return (ctx, e) => (send, onReceive) => {
-		const actor = getActor(ctx, e);
+		const actorRef = typeof actor === "function" ? actor(ctx, e) : actor;
 		const thisBaseActor = { send };
 
-		actor.send(subscribe(thisBaseActor, matches));
+		actorRef.send(subscribe(thisBaseActor, matches));
 
-		onReceive((e) => actor.send(e));
+		onReceive((e) => actorRef.send(e));
 
 		return () => {
-			actor.send(unsubscribe(thisBaseActor));
+			actorRef.send(unsubscribe(thisBaseActor));
 		};
 	};
 }
