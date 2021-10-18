@@ -1,4 +1,4 @@
-import { ActorRef, EventObject, InvokeCreator } from "xstate";
+import type { ActorRef, EventObject, InvokeCreator } from "xstate";
 import type { EventMatch, SubEvent } from "../subscriptions/events";
 import { subscribe, unsubscribe } from "../subscriptions/events";
 
