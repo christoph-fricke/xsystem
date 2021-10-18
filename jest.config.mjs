@@ -3,7 +3,7 @@ const config = {
 	testEnvironment: "node",
 	collectCoverageFrom: ["src/**", "!**/mod.ts", "!src/main.ts"],
 	transform: {
-		"^.+\\.tsx?$": ["esbuild-jest", { sourcemap: true }],
+		"^.+\\.(t|j)sx?$": ["@swc-node/jest", { sourcemap: true }],
 	},
 };
 
