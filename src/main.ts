@@ -12,4 +12,3 @@ export { subscribe, unsubscribe } from "./subscriptions/mod";
 export type { Publish, SubEvent } from "./subscriptions/mod";
 
 export { fromActor, fromMachine, is } from "./utils/mod";
-export type { FromEventTypes } from "./utils/mod";

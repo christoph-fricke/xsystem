@@ -5,7 +5,6 @@ import {
 	createMockBehavior,
 	createMockSubscriber,
 } from "../testing/create_mock";
-import type { FromEventTypes } from "../utils/mod";
 import { createPublishAction, withPubSub } from "./pub_sub";
 
 describe(withPubSub, () => {
@@ -41,7 +40,7 @@ describe(withPubSub, () => {
 	});
 
 	describe("publish", () => {
-		type PubEvent = FromEventTypes<"test.first" | "test.second">;
+		type PubEvent = { type: "test.first" } | { type: "test.second" };
 
 		const publisher = withPubSub<PubEvent, AnyEventObject, null>((publish) => ({
 			initialState: null,
