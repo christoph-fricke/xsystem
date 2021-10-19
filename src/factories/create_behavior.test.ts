@@ -31,5 +31,34 @@ describe(createBehavior, () => {
 			expect(actor.getSnapshot()).toBe("test");
 			expect(start).toBeCalledTimes(1);
 		});
+
+		it("should use the return value of start as the initial state", () => {
+			const start = jest.fn().mockReturnValue("start");
+			const behavior = createBehavior<AnyEventObject, string>((b) => {
+				b.initialState("test");
+				b.start(start);
+			});
+
+			const actor = spawnBehavior(behavior);
+
+			expect(actor.getSnapshot()).toBe("start");
+		});
+	});
+
+	describe("defining transitions", () => {
+		it("should call the transition that is defined for an event type", () => {
+			const transition = jest.fn();
+			const event = { type: "test_event" };
+			const behavior = createBehavior<AnyEventObject, string>((b) => {
+				b.initialState("test");
+				b.on("test_event", transition);
+			});
+
+			const actor = spawnBehavior(behavior);
+			actor.send(event);
+
+			expect(transition).toBeCalledTimes(1);
+			expect(transition).toBeCalledWith("test", event, expect.anything());
+		});
 	});
 });
