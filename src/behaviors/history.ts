@@ -5,6 +5,7 @@ interface UndoEvent extends EventObject {
 	type: "xsystem.undo";
 }
 
+/** Creates an {@link UndoEvent}. */
 export function undo(): UndoEvent {
 	return { type: "xsystem.undo" };
 }
@@ -13,6 +14,7 @@ interface RedoEvent extends EventObject {
 	type: "xsystem.redo";
 }
 
+/** Creates an {@link RedoEvent}. */
 export function redo(): RedoEvent {
 	return { type: "xsystem.redo" };
 }

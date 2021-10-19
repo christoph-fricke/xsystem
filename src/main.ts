@@ -1,4 +1,4 @@
-export { withHistory } from "./behaviors/mod";
+export { withHistory, undo, redo } from "./behaviors/mod";
 export type { WithHistory } from "./behaviors/mod";
 
 export {
