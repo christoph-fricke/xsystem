@@ -7,18 +7,18 @@
 > Building Blocks for [XState](https://github.com/statelyai/xstate)-based Actor
 > Systems.
 
-This package aims to extend the actor concepts that are present in XState and
+This package aims to extend the actor concepts that are present in _XState_ and
 provide "plug 'n play" components. These come in the form of ready-to-use
 behavior, composable higher-order behavior, and utility functions.
 
-At its core, `xsystem` provides mechanisms for actors to subscribe to events
-from other actors. An actor is able to publish events to all its subscribers.
+At its core, _XSystem_ provides mechanisms for actors to subscribe to events
+from other actors. An actor is able to publish events to all subscribers.
 Natively in XState, actors are only able to subscribe to state changes of
 another actor.
 
 ## Installation
 
-XSystem has a peer dependency to XState, which has to be installed as well.
+_XSystem_ has a peer dependency to _XState_, which has to be installed as well.
 Currently, this library is bundled and distributed as an ES module.
 
 ```bash
