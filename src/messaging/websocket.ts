@@ -9,14 +9,12 @@ interface StateChangeEvent extends EventObject {
 	type: "xsystem.websocket.internal.state_change";
 }
 
-type WithWebSocket<E extends EventObject> = E | StateChangeEvent;
-
-interface WebSocketBehaviorState {
+interface WebSocketState {
 	status: "open" | "closed" | "closing" | "connecting";
 	queue: string[];
 }
 
-interface BehaviorOptions<P extends EventObject> {
+interface WebSocketOptions<P extends EventObject> {
 	/** Optional filter to only publish events from the WebSocket if they pass the filter. */
 	filter: (event: P) => boolean;
 }
@@ -26,9 +24,12 @@ interface BehaviorOptions<P extends EventObject> {
 /** Creates an {@link Behavior} that wraps and manages a {@link WebSocket} connection. */
 export function createWebSocket<E extends EventObject, P extends EventObject>(
 	getWebSocket: () => WebSocket,
-	options?: Partial<BehaviorOptions<P>>
-): WithPubSub<P, Behavior<WithWebSocket<E>, WebSocketBehaviorState>> {
-	const initialState = nextState(WebSocket.CONNECTING, []);
+	options?: Partial<WebSocketOptions<P>>
+): WithPubSub<P, Behavior<E | StateChangeEvent, WebSocketState>> {
+	const initialState: WebSocketState = {
+		status: "connecting",
+		queue: [],
+	};
 	let socket: WebSocket;
 
 	return withPubSub((publish) => ({
@@ -38,25 +39,25 @@ export function createWebSocket<E extends EventObject, P extends EventObject>(
 				is<StateChangeEvent>("xsystem.websocket.internal.state_change", event)
 			) {
 				// Empty the queue if the socket opened.
-				if (socket.readyState === WebSocket.OPEN) {
+				if (socket.readyState === socket.OPEN) {
 					for (const msg of state.queue) socket.send(msg);
-					return nextState(socket.readyState, []);
+					return nextState(socket, []);
 				}
 
-				return nextState(socket.readyState, state.queue);
+				return nextState(socket, state.queue);
 			}
 
 			const eventToSend = JSON.stringify(event);
 
-			if (socket.readyState !== WebSocket.OPEN) {
+			if (socket.readyState !== socket.OPEN) {
 				// Sending an event while the WebSocket is not open would raise an error.
-				return nextState(socket.readyState, state.queue.concat(eventToSend));
+				return nextState(socket, state.queue.concat(eventToSend));
 			} else if (state.queue.length > 0) {
 				for (const msg of state.queue.concat(eventToSend)) socket.send(msg);
-				return nextState(socket.readyState, []);
+				return nextState(socket, []);
 			} else {
 				socket.send(eventToSend);
-				return nextState(socket.readyState, state.queue);
+				return nextState(socket, state.queue);
 			}
 		},
 		start: (ctx) => {
@@ -67,23 +68,20 @@ export function createWebSocket<E extends EventObject, P extends EventObject>(
 			socket.onmessage = createPublishMessage(publish, options);
 			socket.onerror = (e) => ctx.observers.forEach((obs) => obs.error(e));
 
-			return nextState(socket.readyState, []);
+			return nextState(socket, []);
 		},
 	}));
 }
 
-function nextState(
-	readyState: number,
-	queue: string[]
-): WebSocketBehaviorState {
-	switch (readyState) {
-		case WebSocket.CONNECTING:
+function nextState(socket: WebSocket, queue: string[]): WebSocketState {
+	switch (socket.readyState) {
+		case socket.CONNECTING:
 			return { status: "connecting", queue };
-		case WebSocket.OPEN:
+		case socket.OPEN:
 			return { status: "open", queue };
-		case WebSocket.CLOSING:
+		case socket.CLOSING:
 			return { status: "closing", queue };
-		case WebSocket.CLOSED:
+		case socket.CLOSED:
 			return { status: "closed", queue };
 		default:
 			throw new TypeError("Unknown ready state for WebSocket connection.");
@@ -91,7 +89,7 @@ function nextState(
 }
 
 function createStateChangeHandler(
-	ctx: ActorContext<StateChangeEvent, any> // eslint-disable-line @typescript-eslint/no-explicit-any
+	ctx: ActorContext<StateChangeEvent, WebSocketState>
 ): () => void {
 	return () =>
 		ctx.self.send({ type: "xsystem.websocket.internal.state_change" });
@@ -99,12 +97,14 @@ function createStateChangeHandler(
 
 function createPublishMessage<P extends EventObject>(
 	publish: Publish<P>,
-	options?: Partial<BehaviorOptions<P>>
-): (msg: MessageEvent<P>) => void {
+	options?: Partial<WebSocketOptions<P>>
+): (msg: MessageEvent<unknown>) => void {
 	return (msg) => {
 		let event: P;
 		try {
-			event = typeof msg.data === "string" ? JSON.parse(msg.data) : msg.data;
+			event = JSON.parse(msg.data as string);
+			if (typeof event !== "object" || typeof event.type !== "string")
+				throw new Error("Message is not an event!");
 		} catch {
 			return;
 		}
