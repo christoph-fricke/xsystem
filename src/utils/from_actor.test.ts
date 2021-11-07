@@ -1,9 +1,12 @@
+import { mock } from "jest-mock-extended";
+import type { ActorRef, AnyEventObject } from "xstate";
 import { createMachine, interpret, send } from "xstate";
 import { spawnBehavior } from "xstate/lib/behaviors";
 import { subscribe, unsubscribe } from "../subscriptions/mod";
 import { withPubSub } from "../messaging/mod";
-import { createMockActor } from "../testing/create_mock";
 import { fromActor } from "./from_actor";
+
+type AnyActorRef = ActorRef<AnyEventObject, unknown>;
 
 type Event = { type: "ping" } | { type: "pong" };
 type Context = Record<string, unknown>;
@@ -22,7 +25,7 @@ function createPingMachine() {
 
 describe(fromActor, () => {
 	it("should subscribe a machine to events published by the given actor", () => {
-		const [handler, publisher] = createMockActor();
+		const publisher = mock<AnyActorRef>();
 
 		const actor = interpret(
 			createPingMachine().withConfig({
@@ -31,8 +34,8 @@ describe(fromActor, () => {
 		);
 		actor.start();
 
-		expect(handler).toBeCalledTimes(1);
-		expect(handler).toBeCalledWith(
+		expect(publisher.send).toBeCalledTimes(1);
+		expect(publisher.send).toBeCalledWith(
 			subscribe(expect.anything(), ["test_event"])
 		);
 
@@ -40,7 +43,7 @@ describe(fromActor, () => {
 	});
 
 	it("should unsubscribe a machine from a given actor when the service is stopped", () => {
-		const [handler, publisher] = createMockActor();
+		const publisher = mock<AnyActorRef>();
 
 		const actor = interpret(
 			createPingMachine().withConfig({
@@ -51,12 +54,12 @@ describe(fromActor, () => {
 		actor.start();
 		actor.stop();
 
-		expect(handler).toBeCalledTimes(2);
-		expect(handler).toBeCalledWith(unsubscribe(expect.anything()));
+		expect(publisher.send).toBeCalledTimes(2);
+		expect(publisher.send).toBeCalledWith(unsubscribe(expect.anything()));
 	});
 
 	it("should be able to resolve the actor from a passed function", () => {
-		const [, publisher] = createMockActor();
+		const publisher = mock<AnyActorRef>();
 		const getPublisher = jest.fn().mockReturnValue(publisher);
 		const context = { key: "test" };
 		const actor = interpret(
@@ -100,7 +103,7 @@ describe(fromActor, () => {
 	});
 
 	it("should send events that are send to the created service to the actor", () => {
-		const [handler, publisher] = createMockActor();
+		const publisher = mock<AnyActorRef>();
 
 		const actor = interpret(
 			createMachine<Context, Event>({
@@ -121,8 +124,8 @@ describe(fromActor, () => {
 
 		actor.start();
 
-		expect(handler).toBeCalledWith({ type: "test1" });
-		expect(handler).toBeCalledWith({ type: "test2" });
+		expect(publisher.send).toBeCalledWith({ type: "test1" });
+		expect(publisher.send).toBeCalledWith({ type: "test2" });
 
 		actor.stop();
 	});

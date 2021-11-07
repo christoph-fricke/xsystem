@@ -1,42 +1,46 @@
-import type { AnyEventObject } from "xstate";
+import { mock, anyObject, anyFunction } from "jest-mock-extended";
+import type { ActorRefFrom, AnyEventObject, Behavior } from "xstate";
 import { spawnBehavior } from "xstate/lib/behaviors";
 import { subscribe, unsubscribe } from "../subscriptions/mod";
-import {
-	createMockBehavior,
-	createMockSubscriber,
-} from "../testing/create_mock";
 import { createPublishAction, withPubSub } from "./pub_sub";
+
+type AnyBehavior = Behavior<AnyEventObject, unknown>;
+type AnyActorRef = ActorRefFrom<AnyBehavior>;
 
 describe(withPubSub, () => {
 	it("should pass received events to the given behavior", () => {
-		const [handler, behavior] = createMockBehavior();
+		const behavior = mock<AnyBehavior>({ initialState: "initial" });
 		const toBeSend = { type: "test_event" };
 
 		const actor = spawnBehavior(withPubSub(() => behavior));
 		actor.send(toBeSend);
 
-		expect(handler).toBeCalledTimes(1);
-		expect(handler).toBeCalledWith(null, toBeSend, expect.anything());
+		expect(behavior.transition).toBeCalledTimes(1);
+		expect(behavior.transition).toBeCalledWith(
+			"initial",
+			toBeSend,
+			anyObject()
+		);
 	});
 
 	it("should not pass subscribe events to the given behavior", () => {
-		const [handler, behavior] = createMockBehavior();
-		const [, sub] = createMockSubscriber();
+		const behavior = mock<AnyBehavior>();
+		const subscriber = mock<AnyActorRef>();
 
 		const actor = spawnBehavior(withPubSub(() => behavior));
-		actor.send(subscribe(sub));
+		actor.send(subscribe(subscriber));
 
-		expect(handler).not.toBeCalled();
+		expect(behavior.transition).not.toBeCalled();
 	});
 
 	it("should not pass unsubscribe events to the given behavior", () => {
-		const [handler, behavior] = createMockBehavior();
-		const [, sub] = createMockSubscriber();
+		const behavior = mock<AnyBehavior>();
+		const subscriber = mock<AnyActorRef>();
 
 		const actor = spawnBehavior(withPubSub(() => behavior));
-		actor.send(unsubscribe(sub));
+		actor.send(unsubscribe(subscriber));
 
-		expect(handler).not.toBeCalled();
+		expect(behavior.transition).not.toBeCalled();
 	});
 
 	describe("publish", () => {
@@ -51,48 +55,48 @@ describe(withPubSub, () => {
 		}));
 
 		it("should publish events to a subscriber", () => {
-			const [handler, subscriber] = createMockSubscriber();
+			const subscriber = mock<AnyActorRef>();
 			const actor = spawnBehavior(publisher);
 
 			actor.send(subscribe(subscriber));
 			actor.send("publish"); // Transition the actor to publish an event
 
-			expect(handler).toBeCalledTimes(1);
-			expect(handler).toBeCalledWith({ type: "test.first" });
+			expect(subscriber.send).toBeCalledTimes(1);
+			expect(subscriber.send).toBeCalledWith({ type: "test.first" });
 		});
 
 		it("should not publish events to a subscriber if it unsubscribed", () => {
-			const [handler, subscriber] = createMockSubscriber();
+			const subscriber = mock<AnyActorRef>();
 			const actor = spawnBehavior(publisher);
 
 			actor.send(subscribe(subscriber));
 			actor.send(unsubscribe(subscriber));
 			actor.send("publish");
 
-			expect(handler).not.toBeCalled();
+			expect(subscriber.send).not.toBeCalled();
 		});
 
 		it("should not publish an event to uninterested subscribers", () => {
-			const [handler, subscriber] = createMockSubscriber();
+			const subscriber = mock<AnyActorRef>();
 			const actor = spawnBehavior(publisher);
 
 			actor.send(subscribe(subscriber, ["test.second"]));
 			actor.send("publish");
 
-			expect(handler).not.toBeCalled();
+			expect(subscriber.send).not.toBeCalled();
 		});
 
 		it("should publish an event to multiple subscribers", () => {
-			const [handler1, subscriber1] = createMockSubscriber();
-			const [handler2, subscriber2] = createMockSubscriber();
+			const subscriber1 = mock<AnyActorRef>();
+			const subscriber2 = mock<AnyActorRef>();
 			const actor = spawnBehavior(publisher);
 
 			actor.send(subscribe(subscriber1));
 			actor.send(subscribe(subscriber2));
 			actor.send("publish");
 
-			expect(handler1).toBeCalledTimes(1);
-			expect(handler2).toBeCalledTimes(1);
+			expect(subscriber1.send).toBeCalledTimes(1);
+			expect(subscriber2.send).toBeCalledTimes(1);
 		});
 	});
 });
@@ -113,7 +117,7 @@ describe(createPublishAction, () => {
 
 		const action = publishAction({ type: "test" });
 
-		expect(action).toStrictEqual({ type: "publish", exec: expect.anything() });
+		expect(action).toStrictEqual({ type: "publish", exec: anyFunction() });
 	});
 
 	it("should call publish when the action is executed", () => {
@@ -124,6 +128,7 @@ describe(createPublishAction, () => {
 		// @ts-expect-error We don't care about the arguments
 		action.exec?.();
 
-		expect(publish).nthCalledWith(1, { type: "test" });
+		expect(publish).toBeCalledTimes(1);
+		expect(publish).toBeCalledWith({ type: "test" });
 	});
 });
