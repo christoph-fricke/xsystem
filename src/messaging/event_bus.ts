@@ -22,13 +22,13 @@ interface CreateOptions {
 	 */
 	strategy: "direct" | "global-broadcast" | "broadcast";
 	/**
-	 * "Bring your own polyfill!" Optional factory function that will used by the
+	 * "Bring your own polyfill!" Optional factory function that is used by the
 	 * **global-broadcast** and **broadcast** strategy to access a {@link BroadcastChannel}.
 	 * The provided `id` should be used as a channel name.
 	 *
 	 * If no factory function is provided, the native API will be used when available.
 	 * If not available, it falls back to an no-op implementation of {@link BroadcastChannel},
-	 * which will continue to deliver messages in the same browser context.
+	 * which will continue to deliver events in the same browser context.
 	 */
 	channel: ChannelFactory;
 }
