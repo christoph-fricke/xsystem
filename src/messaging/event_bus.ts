@@ -11,14 +11,26 @@ export type EventBus<E extends EventObject> = ActorRefFrom<
 	WithPubSub<E, BaseBehavior<E>>
 >;
 
+type ChannelFactory = (id: string) => BroadcastChannel;
+
 interface CreateOptions {
 	/**
 	 * Defines the communication strategy of the created event bus behavior.
-	 * - **direct**: Directly calls the different observers for an event.
-	 * - **global-broadcast**: Extension of **direct** that broadcasts the event as well via a {@link BroadcastChannel}.
+	 * - **direct**: Default Strategy. Directly calls the different observers for an event.
+	 * - **global-broadcast**: Extension of **direct** that also broadcasts the event via a {@link BroadcastChannel}.
 	 * - **broadcast**: Similar to **global-broadcast** but applies additional filtering to stay within a browser tab.
 	 */
 	strategy: "direct" | "global-broadcast" | "broadcast";
+	/**
+	 * "Bring your own polyfill!" Optional factory function that will used by the
+	 * **global-broadcast** and **broadcast** strategy to access a {@link BroadcastChannel}.
+	 * The provided `id` should be used as a channel name.
+	 *
+	 * If no factory function is provided, the native API will be used when available.
+	 * If not available, it falls back to an no-op implementation of {@link BroadcastChannel},
+	 * which will continue to deliver messages in the same browser context.
+	 */
+	channel: ChannelFactory;
 }
 
 /** Create the {@link Behavior} for an {@link EventBus}, which can be spawned. */
@@ -29,10 +41,11 @@ export function createEventBus<E extends EventObject>(
 
 	switch (options?.strategy) {
 		case "broadcast":
-			strategy = (pub) => broadcastBusBehavior(getInstanceID(), pub);
+			strategy = (pub) =>
+				broadcastBusBehavior(getInstanceID(), pub, options.channel);
 			break;
 		case "global-broadcast":
-			strategy = globalBroadcastBusBehavior;
+			strategy = (pub) => globalBroadcastBusBehavior(pub, options.channel);
 			break;
 		default:
 			strategy = busBehavior;
@@ -56,9 +69,10 @@ function busBehavior<E extends EventObject>(
 }
 
 function globalBroadcastBusBehavior<E extends EventObject>(
-	publish: Publish<E>
+	publish: Publish<E>,
+	channel?: ChannelFactory
 ): BaseBehavior<E> {
-	let channel: BroadcastChannel;
+	let bcChannel: BroadcastChannel;
 
 	// TODO: Close the channel once https://github.com/statelyai/xstate/pull/2560 is merged
 
@@ -66,14 +80,14 @@ function globalBroadcastBusBehavior<E extends EventObject>(
 		initialState: null,
 		transition(state, event) {
 			publish(event);
-			channel?.postMessage(event);
+			bcChannel?.postMessage(event);
 
 			return state;
 		},
 		start(ctx) {
-			channel = createBroadcastChannel(ctx.id);
-			channel.onmessage = (msg) => publish(msg.data);
-			channel.onmessageerror = (msg) =>
+			bcChannel = channel ? channel(ctx.id) : createBroadcastChannel(ctx.id);
+			bcChannel.onmessage = (msg) => publish(msg.data);
+			bcChannel.onmessageerror = (msg) =>
 				ctx.observers.forEach((obs) => obs.error(msg));
 
 			return null;
@@ -88,9 +102,10 @@ interface WrappedBroadcastEvent<E extends EventObject> {
 
 function broadcastBusBehavior<E extends EventObject>(
 	contextId: number,
-	publish: Publish<E>
+	publish: Publish<E>,
+	channel?: ChannelFactory
 ): BaseBehavior<E> {
-	let channel: BroadcastChannel;
+	let bcChannel: BroadcastChannel;
 
 	// TODO: Close the channel once https://github.com/statelyai/xstate/pull/2560 is merged
 
@@ -98,15 +113,15 @@ function broadcastBusBehavior<E extends EventObject>(
 		initialState: null,
 		transition(state, event) {
 			publish(event);
-			channel?.postMessage(<WrappedBroadcastEvent<E>>{ contextId, event });
+			bcChannel?.postMessage(<WrappedBroadcastEvent<E>>{ contextId, event });
 
 			return state;
 		},
 		start(ctx) {
-			channel = createBroadcastChannel(ctx.id);
-			channel.onmessage = (msg) =>
+			bcChannel = channel ? channel(ctx.id) : createBroadcastChannel(ctx.id);
+			bcChannel.onmessage = (msg) =>
 				msg.data.contextId === contextId ? publish(msg.data.event) : void 0;
-			channel.onmessageerror = (msg) =>
+			bcChannel.onmessageerror = (msg) =>
 				ctx.observers.forEach((obs) => obs.error(msg));
 
 			return null;

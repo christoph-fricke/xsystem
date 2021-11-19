@@ -74,6 +74,74 @@ describe(createEventBus, () => {
 		expect(subscriber.send).toBeCalledWith(event1);
 		expect(subscriber.send).not.toBeCalledWith(event2);
 	});
+
+	describe("broadcast strategy", () => {
+		it("should accept an provided broadcast channel", () => {
+			const channel = mock<BroadcastChannel>();
+			const factory = jest.fn().mockReturnValue(channel);
+
+			spawnBehavior(
+				createEventBus<BasicEvent>({ strategy: "broadcast", channel: factory }),
+				{ id: "test-id" }
+			);
+
+			expect(factory).toBeCalledTimes(1);
+			expect(factory).toBeCalledWith("test-id");
+		});
+
+		it("should call the provided broadcast channel with events", () => {
+			const channel = mock<BroadcastChannel>();
+			const event: BasicEvent = { type: "basic.first" };
+
+			const bus = spawnBehavior(
+				createEventBus<BasicEvent>({
+					strategy: "broadcast",
+					channel: () => channel,
+				})
+			);
+			bus.send(event);
+
+			expect(channel.postMessage).toBeCalledTimes(1);
+			expect(channel.postMessage).toBeCalledWith({
+				contextId: expect.any(Number),
+				event: event,
+			});
+		});
+	});
+
+	describe("global-broadcast strategy", () => {
+		it("should accept an provided broadcast channel", () => {
+			const channel = mock<BroadcastChannel>();
+			const factory = jest.fn().mockReturnValue(channel);
+
+			spawnBehavior(
+				createEventBus<BasicEvent>({
+					strategy: "global-broadcast",
+					channel: factory,
+				}),
+				{ id: "test-id" }
+			);
+
+			expect(factory).toBeCalledTimes(1);
+			expect(factory).toBeCalledWith("test-id");
+		});
+
+		it("should call the provided broadcast channel with messages", () => {
+			const channel = mock<BroadcastChannel>();
+			const event: BasicEvent = { type: "basic.first" };
+
+			const bus = spawnBehavior(
+				createEventBus<BasicEvent>({
+					strategy: "global-broadcast",
+					channel: () => channel,
+				})
+			);
+			bus.send(event);
+
+			expect(channel.postMessage).toBeCalledTimes(1);
+			expect(channel.postMessage).toBeCalledWith(event);
+		});
+	});
 });
 
 describe("EventBus interface", () => {
