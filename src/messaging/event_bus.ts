@@ -22,7 +22,7 @@ interface CreateOptions {
 	 */
 	strategy: "direct" | "global-broadcast" | "broadcast";
 	/**
-	 * "Bring your own polyfill!" Optional factory function that is used by the
+	 * _"Bring your own polyfill!"_ Optional factory function that is used by the
 	 * **global-broadcast** and **broadcast** strategy to access a {@link BroadcastChannel}.
 	 * The provided `id` should be used as a channel name.
 	 *
@@ -85,7 +85,7 @@ function globalBroadcastBusBehavior<E extends EventObject>(
 			return state;
 		},
 		start(ctx) {
-			bcChannel = channel ? channel(ctx.id) : createBroadcastChannel(ctx.id);
+			bcChannel = channel?.(ctx.id) ?? createBroadcastChannel(ctx.id);
 			bcChannel.onmessage = (msg) => publish(msg.data);
 			bcChannel.onmessageerror = (msg) =>
 				ctx.observers.forEach((obs) => obs.error(msg));
@@ -118,7 +118,7 @@ function broadcastBusBehavior<E extends EventObject>(
 			return state;
 		},
 		start(ctx) {
-			bcChannel = channel ? channel(ctx.id) : createBroadcastChannel(ctx.id);
+			bcChannel = channel?.(ctx.id) ?? createBroadcastChannel(ctx.id);
 			bcChannel.onmessage = (msg) =>
 				msg.data.contextId === contextId ? publish(msg.data.event) : void 0;
 			bcChannel.onmessageerror = (msg) =>
