@@ -21,7 +21,12 @@ interface WebSocketOptions<P extends EventObject> {
 
 // TODO: (#3) Requires support for "stop" behavior to close the socket connection.
 
-/** Creates an {@link Behavior} that wraps and manages a {@link WebSocket} connection. */
+/**
+ * Creates an {@link Behavior} that wraps and manages a {@link WebSocket} connection.
+ * The state of spawned actors is not managed explicitly. Instead, it is derived
+ * from the WebSocket's `readyState` to enure that it reflects the real WebSocket
+ * connection state.
+ */
 export function createWebSocket<E extends EventObject, P extends EventObject>(
 	getWebSocket: () => WebSocket,
 	options?: Partial<WebSocketOptions<P>>
