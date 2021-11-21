@@ -1,5 +1,5 @@
-import type { AnyEventObject } from "xstate";
-import { createMockSubscriber } from "../testing/create_mock";
+import { mock } from "jest-mock-extended";
+import type { ActorRef, AnyEventObject } from "xstate";
 import { BucketMap } from "./bucket_map";
 import { subscribe, unsubscribe } from "./events";
 import type { Publish, SubscriberMap } from "./subscribers";
@@ -8,6 +8,8 @@ import {
 	createSubscriberStructure,
 	handleSubscribeEvent,
 } from "./subscribers";
+
+type AnyActorRef = ActorRef<AnyEventObject, unknown>;
 
 describe(createSubscriberStructure, () => {
 	it("should use a bucket map as its data structure", () => {
@@ -30,7 +32,7 @@ describe(handleSubscribeEvent, () => {
 
 	describe("handling subscribe", () => {
 		it("should return true when the passed event is a subscribe event", () => {
-			const [, ref] = createMockSubscriber();
+			const ref = mock<AnyActorRef>();
 
 			const handled = handleSubscribeEvent(store, subscribe(ref));
 
@@ -38,7 +40,7 @@ describe(handleSubscribeEvent, () => {
 		});
 
 		it("should add the subscriber to the provided event match", () => {
-			const [, ref] = createMockSubscriber();
+			const ref = mock<AnyActorRef>();
 
 			handleSubscribeEvent(store, subscribe(ref, ["*", "event.*", "event"]));
 
@@ -50,7 +52,7 @@ describe(handleSubscribeEvent, () => {
 
 	describe("handling unsubscribe", () => {
 		it("should return true when the passed event is an unsubscribe event", () => {
-			const [, ref] = createMockSubscriber();
+			const ref = mock<AnyActorRef>();
 
 			const handled = handleSubscribeEvent(store, unsubscribe(ref));
 
@@ -58,7 +60,7 @@ describe(handleSubscribeEvent, () => {
 		});
 
 		it("should remove the subscriber from all matches", () => {
-			const [, ref] = createMockSubscriber();
+			const ref = mock<AnyActorRef>();
 			store.add("*", ref);
 			store.add("event.*", ref);
 			store.add("event", ref);
@@ -91,23 +93,23 @@ describe(createPublishFunction, () => {
 
 		it("should send a given event to all subscriber that subscribed to the type", () => {
 			const event = { type: "test.event" };
-			const [handler1, subscriber1] = createMockSubscriber();
-			const [handler2, subscriber2] = createMockSubscriber();
+			const subscriber1 = mock<AnyActorRef>();
+			const subscriber2 = mock<AnyActorRef>();
 
 			store.add(event.type, subscriber1);
 			store.add(event.type, subscriber2);
 			publish(event);
 
-			expect(handler1).nthCalledWith(1, event);
-			expect(handler2).nthCalledWith(1, event);
+			expect(subscriber1.send).toBeCalledWith(event);
+			expect(subscriber2.send).toBeCalledWith(event);
 		});
 
 		it("should send a given event to all subscriber that used a wildcard", () => {
 			const event = { type: "test.mock.event.sub" };
-			const [handler1, subscriber1] = createMockSubscriber();
-			const [handler2, subscriber2] = createMockSubscriber();
-			const [handler3, subscriber3] = createMockSubscriber();
-			const [handler4, subscriber4] = createMockSubscriber();
+			const subscriber1 = mock<AnyActorRef>();
+			const subscriber2 = mock<AnyActorRef>();
+			const subscriber3 = mock<AnyActorRef>();
+			const subscriber4 = mock<AnyActorRef>();
 
 			store.add("*", subscriber1);
 			store.add("test.*", subscriber2);
@@ -115,10 +117,10 @@ describe(createPublishFunction, () => {
 			store.add("test.mock.event.*", subscriber4);
 			publish(event);
 
-			expect(handler1).nthCalledWith(1, event);
-			expect(handler2).nthCalledWith(1, event);
-			expect(handler3).nthCalledWith(1, event);
-			expect(handler4).nthCalledWith(1, event);
+			expect(subscriber1.send).toBeCalledWith(event);
+			expect(subscriber2.send).toBeCalledWith(event);
+			expect(subscriber3.send).toBeCalledWith(event);
+			expect(subscriber4.send).toBeCalledWith(event);
 		});
 	});
 });

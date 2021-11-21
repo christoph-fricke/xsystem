@@ -1,14 +1,17 @@
+import { mock } from "jest-mock-extended";
+import type { ActorRef, AnyEventObject } from "xstate";
 import { spawnBehavior } from "xstate/lib/behaviors";
 import { subscribe, unsubscribe } from "../subscriptions/mod";
-import { createMockSubscriber } from "../testing/create_mock";
 import { createEventBus, EventBus } from "./event_bus";
+
+type AnyActorRef = ActorRef<AnyEventObject, unknown>;
 
 type BasicEvent = { type: "basic.first" } | { type: "basic.second" };
 type ExtendedEvent = { type: "extended.first" } | { type: "extended.second" };
 
 describe(createEventBus, () => {
 	it("should proxy received events to a subscriber", () => {
-		const [handler, subscriber] = createMockSubscriber();
+		const subscriber = mock<AnyActorRef>();
 		const bus = spawnBehavior(createEventBus<BasicEvent>());
 		const event1: BasicEvent = { type: "basic.first" };
 		const event2: BasicEvent = { type: "basic.second" };
@@ -17,13 +20,14 @@ describe(createEventBus, () => {
 		bus.send(event1);
 		bus.send(event2);
 
-		expect(handler).nthCalledWith(1, event1);
-		expect(handler).nthCalledWith(2, event2);
+		expect(subscriber.send).toBeCalledTimes(2);
+		expect(subscriber.send).nthCalledWith(1, event1);
+		expect(subscriber.send).nthCalledWith(2, event2);
 	});
 
 	it("should proxy received events to all subscribers", () => {
-		const [handler1, subscriber1] = createMockSubscriber();
-		const [handler2, subscriber2] = createMockSubscriber();
+		const subscriber1 = mock<AnyActorRef>();
+		const subscriber2 = mock<AnyActorRef>();
 		const bus = spawnBehavior(createEventBus<BasicEvent>());
 		const event: BasicEvent = { type: "basic.first" };
 
@@ -31,42 +35,34 @@ describe(createEventBus, () => {
 		bus.send(subscribe(subscriber2));
 		bus.send(event);
 
-		expect(handler1).nthCalledWith(1, event);
-		expect(handler2).nthCalledWith(1, event);
+		expect(subscriber1.send).toBeCalledWith(event);
+		expect(subscriber2.send).toBeCalledWith(event);
 	});
 
 	it("should not proxy subscribe events to a subscriber", () => {
-		const [handler1, subscriber1] = createMockSubscriber();
-		const [, subscriber2] = createMockSubscriber();
+		const subscriber1 = mock<AnyActorRef>();
+		const subscriber2 = mock<AnyActorRef>();
 		const bus = spawnBehavior(createEventBus<BasicEvent>());
 
 		bus.send(subscribe(subscriber1));
 		bus.send(subscribe(subscriber2));
 
-		expect(handler1).not.toBeCalled();
+		expect(subscriber1.send).not.toBeCalled();
 	});
 
 	it("should not proxy unsubscribe events to a subscriber", () => {
-		const [handler1, subscriber1] = createMockSubscriber();
-		const [, subscriber2] = createMockSubscriber();
+		const subscriber1 = mock<AnyActorRef>();
+		const subscriber2 = mock<AnyActorRef>();
 		const bus = spawnBehavior(createEventBus<BasicEvent>());
 
 		bus.send(subscribe(subscriber1));
 		bus.send(unsubscribe(subscriber2));
 
-		expect(handler1).not.toBeCalled();
-	});
-
-	it("should be possible to pass an extended event bus to a focused argument", () => {
-		const receiver = (bus: EventBus<BasicEvent>) => void bus;
-		const bus = spawnBehavior(createEventBus<BasicEvent | ExtendedEvent>());
-
-		// Test is considered passing when this expression does not produce a type error
-		receiver(bus);
+		expect(subscriber1.send).not.toBeCalled();
 	});
 
 	it("should not proxy events to uninterested subscribers", () => {
-		const [handler, subscriber] = createMockSubscriber();
+		const subscriber = mock<AnyActorRef>();
 		const bus = spawnBehavior(createEventBus<BasicEvent | ExtendedEvent>());
 		const event1: BasicEvent = { type: "basic.first" };
 		const event2: ExtendedEvent = { type: "extended.first" };
@@ -75,7 +71,93 @@ describe(createEventBus, () => {
 		bus.send(event1);
 		bus.send(event2);
 
-		expect(handler).toBeCalledWith(event1);
-		expect(handler).not.toBeCalledWith(event2);
+		expect(subscriber.send).toBeCalledWith(event1);
+		expect(subscriber.send).not.toBeCalledWith(event2);
+	});
+
+	describe("broadcast strategy", () => {
+		it("should accept an provided broadcast channel", () => {
+			const channel = mock<BroadcastChannel>();
+			const factory = jest.fn().mockReturnValue(channel);
+
+			spawnBehavior(
+				createEventBus<BasicEvent>({ strategy: "broadcast", channel: factory }),
+				{ id: "test-id" }
+			);
+
+			expect(factory).toBeCalledTimes(1);
+			expect(factory).toBeCalledWith("test-id");
+		});
+
+		it("should call the provided broadcast channel with events", () => {
+			const channel = mock<BroadcastChannel>();
+			const event: BasicEvent = { type: "basic.first" };
+
+			const bus = spawnBehavior(
+				createEventBus<BasicEvent>({
+					strategy: "broadcast",
+					channel: () => channel,
+				})
+			);
+			bus.send(event);
+
+			expect(channel.postMessage).toBeCalledTimes(1);
+			expect(channel.postMessage).toBeCalledWith({
+				contextId: expect.any(Number),
+				event: event,
+			});
+		});
+	});
+
+	describe("global-broadcast strategy", () => {
+		it("should accept an provided broadcast channel", () => {
+			const channel = mock<BroadcastChannel>();
+			const factory = jest.fn().mockReturnValue(channel);
+
+			spawnBehavior(
+				createEventBus<BasicEvent>({
+					strategy: "global-broadcast",
+					channel: factory,
+				}),
+				{ id: "test-id" }
+			);
+
+			expect(factory).toBeCalledTimes(1);
+			expect(factory).toBeCalledWith("test-id");
+		});
+
+		it("should call the provided broadcast channel with messages", () => {
+			const channel = mock<BroadcastChannel>();
+			const event: BasicEvent = { type: "basic.first" };
+
+			const bus = spawnBehavior(
+				createEventBus<BasicEvent>({
+					strategy: "global-broadcast",
+					channel: () => channel,
+				})
+			);
+			bus.send(event);
+
+			expect(channel.postMessage).toBeCalledTimes(1);
+			expect(channel.postMessage).toBeCalledWith(event);
+		});
+	});
+});
+
+describe("EventBus interface", () => {
+	it("should be allowed to provide a bus that supports more events than required", () => {
+		const receiver = (bus: EventBus<BasicEvent>) => void bus;
+		const bus = {} as EventBus<BasicEvent | ExtendedEvent>;
+
+		// Shall not produce a type error.
+		receiver(bus);
+	});
+
+	it("should throw an error if the provided bus does not support all required events", () => {
+		const receiver = (bus: EventBus<BasicEvent>) => void bus;
+		const bus = {} as EventBus<ExtendedEvent>;
+
+		//@ts-expect-error The provided bus must required events.
+		receiver(bus);
 	});
 });

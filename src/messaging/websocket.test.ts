@@ -1,9 +1,10 @@
 import { mock } from "jest-mock-extended";
+import type { ActorRef, AnyEventObject } from "xstate";
 import { spawnBehavior } from "xstate/lib/behaviors";
-import { subscribe } from "../subscriptions/mod";
-import { createMockActor } from "../testing/create_mock";
+import { subscribe, SubEvent } from "../subscriptions/mod";
 import { createWebSocket } from "./websocket";
 
+type AnyActor = ActorRef<SubEvent<AnyEventObject>, unknown>;
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
 describe(createWebSocket, () => {
@@ -217,7 +218,7 @@ describe(createWebSocket, () => {
 	describe("receiving events", () => {
 		it("should publish all events that are received on the socket connection", () => {
 			const socket = mock<WebSocket>(readyStates);
-			const [handler, subscriber] = createMockActor();
+			const subscriber = mock<AnyActor>();
 			const actor = spawnBehavior(createWebSocket(() => socket));
 			const event1 = { type: "test.event1" };
 			const event2 = { type: "test.event2" };
@@ -226,14 +227,14 @@ describe(createWebSocket, () => {
 			socket.onmessage?.({ data: JSON.stringify(event1) } as MessageEvent);
 			socket.onmessage?.({ data: JSON.stringify(event2) } as MessageEvent);
 
-			expect(handler).toBeCalledTimes(2);
-			expect(handler).nthCalledWith(1, event1);
-			expect(handler).nthCalledWith(2, event2);
+			expect(subscriber.send).toBeCalledTimes(2);
+			expect(subscriber.send).nthCalledWith(1, event1);
+			expect(subscriber.send).nthCalledWith(2, event2);
 		});
 
 		it("should ignore messages that are not events", () => {
 			const socket = mock<WebSocket>(readyStates);
-			const [handler, subscriber] = createMockActor();
+			const subscriber = mock<AnyActor>();
 			const actor = spawnBehavior(createWebSocket(() => socket));
 
 			actor.send(subscribe(subscriber));
@@ -243,12 +244,12 @@ describe(createWebSocket, () => {
 				data: JSON.stringify({ test: 32 }),
 			} as MessageEvent);
 
-			expect(handler).not.toBeCalled();
+			expect(subscriber.send).not.toBeCalled();
 		});
 
 		it("should ignore events if they are filtered by a provided filter", () => {
 			const socket = mock<WebSocket>(readyStates);
-			const [handler, subscriber] = createMockActor();
+			const subscriber = mock<AnyActor>();
 			const actor = spawnBehavior(
 				createWebSocket(() => socket, {
 					filter: (e) => e.type !== "test.event1",
@@ -262,8 +263,8 @@ describe(createWebSocket, () => {
 			socket.onmessage?.({ data: JSON.stringify(event2) } as MessageEvent);
 
 			// The filter should lead to event1 being ignored
-			expect(handler).toBeCalledTimes(1);
-			expect(handler).toBeCalledWith(event2);
+			expect(subscriber.send).toBeCalledTimes(1);
+			expect(subscriber.send).toBeCalledWith(event2);
 		});
 	});
 });

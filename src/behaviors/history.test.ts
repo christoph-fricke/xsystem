@@ -1,6 +1,9 @@
+import { mock, anyObject } from "jest-mock-extended";
+import type { AnyEventObject, Behavior } from "xstate";
 import { spawnBehavior } from "xstate/lib/behaviors";
-import { createMockBehavior } from "../testing/create_mock";
 import { withHistory, undo, redo } from "./history";
+
+type AnyBehavior = Behavior<AnyEventObject, unknown>;
 
 describe(undo, () => {
 	it("should construct an undo event", () => {
@@ -20,30 +23,28 @@ describe(redo, () => {
 
 describe(withHistory, () => {
 	it("should return the wrapped initial state", () => {
-		const [, behavior] = createMockBehavior("Initial");
+		const behavior = mock<AnyBehavior>({ initialState: "Initial" });
+
 		const wrapped = withHistory(behavior);
 
 		expect(wrapped.initialState).toBe("Initial");
 	});
 
 	it("should forward events to the wrapped behavior", () => {
-		const [handler, behavior] = createMockBehavior("Initial");
+		const behavior = mock<AnyBehavior>({ initialState: "Initial" });
+		const event = { type: "event" };
+
 		const actor = spawnBehavior(withHistory(behavior));
+		actor.send(event);
 
-		actor.send({ type: "event" });
-
-		expect(handler).toBeCalledTimes(1);
-		expect(handler).toBeCalledWith(
-			"Initial",
-			{ type: "event" },
-			expect.anything()
-		);
+		expect(behavior.transition).toBeCalledTimes(1);
+		expect(behavior.transition).toBeCalledWith("Initial", event, anyObject());
 	});
 
 	it("should overwrite previously produced state when an event is changed in the middle of the history", () => {
-		const [handler, behavior] = createMockBehavior("Initial");
-		handler.mockReturnValueOnce("First");
-		handler.mockReturnValueOnce("Second");
+		const behavior = mock<AnyBehavior>({ initialState: "Initial" });
+		behavior.transition.mockReturnValueOnce("First");
+		behavior.transition.mockReturnValueOnce("Second");
 		const actor = spawnBehavior(withHistory(behavior));
 
 		// Create a history and go back to the middle
@@ -55,7 +56,7 @@ describe(withHistory, () => {
 		expect(actor.getSnapshot()).toBe("Initial");
 
 		// Sending another event removes the previously produced state
-		handler.mockReturnValueOnce("NewState");
+		behavior.transition.mockReturnValueOnce("NewState");
 		actor.send("transition");
 		expect(actor.getSnapshot()).toBe("NewState");
 		actor.send(undo());
@@ -70,27 +71,27 @@ describe(withHistory, () => {
 
 	describe(`sending undo`, () => {
 		it("should not transition the wrapped behavior", () => {
-			const [handler, behavior] = createMockBehavior();
+			const behavior = mock<AnyBehavior>();
 
 			const actor = spawnBehavior(withHistory(behavior));
 			actor.send(undo());
 
-			expect(handler).not.toBeCalled();
+			expect(behavior.transition).not.toBeCalled();
 		});
 
 		it("should return the initialState when no other events have been sent yet", () => {
-			const [, behavior] = createMockBehavior("Initial");
-			const actor = spawnBehavior(withHistory(behavior));
+			const behavior = mock<AnyBehavior>({ initialState: "Initial" });
 
+			const actor = spawnBehavior(withHistory(behavior));
 			actor.send(undo());
 
 			expect(actor.getSnapshot()).toBe(behavior.initialState);
 		});
 
 		it("should return the previous state of the actor when multiple state updates exist", () => {
-			const [handler, behavior] = createMockBehavior("Initial");
-			handler.mockReturnValueOnce("First");
-			handler.mockReturnValueOnce("Second");
+			const behavior = mock<AnyBehavior>({ initialState: "Initial" });
+			behavior.transition.mockReturnValueOnce("First");
+			behavior.transition.mockReturnValueOnce("Second");
 			const actor = spawnBehavior(withHistory(behavior));
 
 			// Cause two state updates in the actor
@@ -108,16 +109,16 @@ describe(withHistory, () => {
 
 	describe(`sending redo`, () => {
 		it("should not transition the wrapped behavior", () => {
-			const [handler, behavior] = createMockBehavior();
+			const behavior = mock<AnyBehavior>();
 			const actor = spawnBehavior(withHistory(behavior));
 
 			actor.send(redo());
 
-			expect(handler).not.toBeCalled();
+			expect(behavior.transition).not.toBeCalled();
 		});
 
 		it("should return the initialState when no other events have been sent", () => {
-			const [, behavior] = createMockBehavior("Initial");
+			const behavior = mock<AnyBehavior>({ initialState: "Initial" });
 			const actor = spawnBehavior(withHistory(behavior));
 
 			actor.send(redo());
@@ -126,8 +127,8 @@ describe(withHistory, () => {
 		});
 
 		it("should return the next state when redo is sent after undo", () => {
-			const [handler, behavior] = createMockBehavior("Initial");
-			handler.mockReturnValueOnce("NewState");
+			const behavior = mock<AnyBehavior>({ initialState: "Initial" });
+			behavior.transition.mockReturnValueOnce("NewState");
 			const actor = spawnBehavior(withHistory(behavior));
 
 			actor.send("transition");
@@ -138,9 +139,9 @@ describe(withHistory, () => {
 		});
 
 		it("should return the next state of the actor when undo has been used before", () => {
-			const [handler, behavior] = createMockBehavior("Initial");
-			handler.mockReturnValueOnce("First");
-			handler.mockReturnValueOnce("Second");
+			const behavior = mock<AnyBehavior>({ initialState: "Initial" });
+			behavior.transition.mockReturnValueOnce("First");
+			behavior.transition.mockReturnValueOnce("Second");
 			const actor = spawnBehavior(withHistory(behavior));
 
 			// Cause two state updates in the actor
