@@ -70,7 +70,7 @@ export function createWebSocket<E extends EventObject, P extends EventObject>(
 
 			socket.onopen = createStateChangeHandler(ctx);
 			socket.onclose = createStateChangeHandler(ctx);
-			socket.onmessage = createPublishMessage(publish, options);
+			socket.onmessage = createPublishMessage(publish, options?.filter);
 			socket.onerror = (e) => ctx.observers.forEach((obs) => obs.error(e));
 
 			return nextState(socket, []);
@@ -102,7 +102,7 @@ function createStateChangeHandler(
 
 function createPublishMessage<P extends EventObject>(
 	publish: Publish<P>,
-	options?: Partial<WebSocketOptions<P>>
+	filter?: WebSocketOptions<P>["filter"]
 ): (msg: MessageEvent<unknown>) => void {
 	return (msg) => {
 		let event: P;
@@ -116,7 +116,7 @@ function createPublishMessage<P extends EventObject>(
 
 		// "=== false" might look "dump" but the case should only be taken if the
 		// filter returns false. If no filter exists, all events are be published.
-		if (options?.filter?.(event) === false) return;
+		if (filter?.(event) === false) return;
 
 		publish(event);
 	};
