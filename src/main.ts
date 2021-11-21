@@ -3,6 +3,7 @@ export type { WithHistory } from "./behaviors/mod";
 
 export {
 	createEventBus,
+	createWebSocket,
 	createPublishAction,
 	withPubSub,
 } from "./messaging/mod";
