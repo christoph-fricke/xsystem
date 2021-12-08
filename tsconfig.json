@@ -2,11 +2,11 @@
 {
 	"compilerOptions": {
 		/* Language and Environment */
-		"target": "ES2020",
-		"lib": ["DOM", "ES2020"],
+		"target": "ES6",
+		"lib": ["DOM", "ES6"],
 
 		/* Modules */
-		"module": "ES2020",
+		"module": "ES6",
 		"rootDir": "./src",
 		"moduleResolution": "node",
 
