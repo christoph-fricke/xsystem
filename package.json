@@ -12,17 +12,18 @@
 	"repository": "github:christoph-fricke/xsystem",
 	"type": "module",
 	"sideEffects": false,
+	"main": "./cjs/main.js",
 	"module": "./dist/main.js",
 	"types": "./dist/main.d.ts",
 	"exports": {
-		".": "./dist/main.js",
-		"./behavior": "./dist/behavior/mod.js",
-		"./messaging": "./dist/messaging/mod.js",
-		"./subscriptions": "./dist/subscriptions/mod.js",
-		"./utils": "./dist/utils/mod.js"
+		".": {
+			"require": "./cjs/main.js",
+			"import": "./dist/main.js"
+		}
 	},
 	"files": [
 		"dist",
+		"cjs",
 		"!**/*.test.*",
 		"README.md",
 		"LICENSE"
@@ -31,9 +32,9 @@
 		"prepublishOnly": "npm run test",
 		"prepare": "husky install",
 		"prepack": "npm run build",
-		"clean": "rm -rf dist",
+		"clean": "rm -rf dist cjs",
 		"prebuild": "npm run clean",
-		"build": "tsc -b",
+		"build": "tsc -b && tsc -p tsconfig.cjs.json",
 		"format": "prettier --write .",
 		"lint": "tsc --noEmit && eslint . && prettier -c .",
 		"test": "jest",
