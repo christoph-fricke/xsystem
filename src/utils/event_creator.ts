@@ -39,10 +39,10 @@ type _EventCreatorWithPayload<
 	? EventCreatorWithPayload<T, Parameters<PA>, P>
 	: never;
 
-/** Basic type for all action creators. */
+/** Basic type for all event creators. */
 interface BaseEventCreator<T extends string, P> {
 	type: T;
-	match: (action: AnyEventObject) => action is StructuredEvent<T, P>;
+	match: (e: AnyEventObject) => e is StructuredEvent<T, P>;
 }
 
 /**
@@ -78,7 +78,7 @@ export interface EventCreatorNoPayload<T extends string>
  * Lastly, the event creator function will have its `toString()` method overridden
  * so that it returns the event type.
  *
- * @param type The action type to use for created actions.
+ * @param type The event type to use for created events.
  * @param prepare A method that takes any number of arguments and returns the event payload.
  */
 export function createEvent<T extends string>(
