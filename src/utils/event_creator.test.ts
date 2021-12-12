@@ -1,0 +1,88 @@
+import { createMachine, interpret } from "xstate";
+import { createEvent, EventFrom } from "./event_creator";
+
+describe(createEvent, () => {
+	it("should return an event-creator function", () => {
+		const test = createEvent("test.event");
+
+		const ev = test();
+
+		expect(ev).toStrictEqual({ type: "test.event" });
+	});
+
+	it("should attach the event type to the returned function", () => {
+		const test = createEvent("test.event");
+
+		expect(test.type).toBe("test.event");
+	});
+
+	it("should overwrite the `toString` method to return the event type", () => {
+		const test = createEvent("test.event");
+
+		expect(test.toString()).toBe("test.event");
+	});
+
+	it("should attach an `match` function to match events to the created event", () => {
+		const test = createEvent("test.event");
+
+		expect(typeof test.match).toBe("function");
+		expect(test.match({ type: "test.event" })).toBe(true);
+		expect(test.match({ type: "hello", num: 42 })).toBe(false);
+	});
+
+	it("should accept an payload creator as an optional argument", () => {
+		const test = createEvent("test.event", (id: string) => id);
+
+		const ev = test("123");
+
+		expect(ev).toStrictEqual({ type: "test.event", payload: "123" });
+	});
+
+	it("should throw an error if the prepare callback returns no value", () => {
+		const call = () =>
+			createEvent("test", (id) => {
+				id;
+			});
+
+		expect(call()).toThrowError("prepareEvent did not return a value");
+	});
+
+	it("should be possible to use created events in machine definitions", () => {
+		const ping = createEvent("user.ping");
+		const machine = createMachine({
+			id: "ping",
+			initial: "Ping",
+			states: {
+				Ping: {
+					on: {
+						[ping.type]: "Pong",
+					},
+				},
+				Pong: {},
+			},
+		});
+
+		const actor = interpret(machine).start();
+		actor.send(ping());
+
+		expect(actor.state.matches("Pong")).toBeTruthy();
+	});
+});
+
+describe("EventFrom", () => {
+	it("should extract the event schema from the creator function", () => {
+		const test = createEvent("test.event", (id: string) => ({ id }));
+
+		type Ev = EventFrom<typeof test>;
+
+		// This assignment should not error.
+		const e: Ev = {
+			type: "test.event",
+			payload: {
+				id: "123",
+			},
+		};
+
+		expect(e).toBe(e);
+	});
+});
