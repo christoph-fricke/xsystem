@@ -4,114 +4,106 @@ import type { AnyEventObject, EventFrom as OriginalEventFrom } from "xstate";
 // and simplified to fit into the XState ecosystem.
 // Original: https://github.com/reduxjs/redux-toolkit/blob/master/packages/toolkit/src/createAction.ts
 
-type UnknownFunction = (...args: unknown[]) => unknown;
+type Empty = Record<string, never>;
 export type Compute<A> = { [K in keyof A]: A[K] } & unknown;
 
 /**
- * Extracts an event shape from provided type. If the provided type is not an event
+ * Extracts an event shape from provided generic. If the provided generic is not an event
  * creator, the resolution is deferred to the original XState implementation
  * of `EventFrom`.
+ *
+ * @example
+ * const example = createEvent("test.example", (id: string) => ({ id }));
+ *
+ * type Ev = EventFrom<typeof example>;
+ * // Ev is types as: {
+ * //   type: "test.event";
+ * //   id: string;
+ * // }
  */
-export type EventFrom<C> = C extends BaseEventCreator<infer T, infer P>
-	? ConstructedEvent<T, P>
+export type EventFrom<C> = C extends EventCreator<
+	infer T,
+	infer P,
+	infer _A // eslint-disable-line @typescript-eslint/no-unused-vars
+>
+	? CreatedEvent<T, P>
 	: OriginalEventFrom<C>;
 
 /**
- * An event with an associated payload. This is the
- * type of events returned by `createEvent()` event creators.
+ * An event with an optional payload. This is the
+ * type of events returned by {@link createEvent} event creators.
  */
-export type ConstructedEvent<
+export type CreatedEvent<
 	T extends string,
-	P extends object = Record<string, never>
-> = P extends Record<string, never> ? { type: T } : Compute<{ type: T } & P>;
+	P extends object = Empty
+> = P extends Empty ? { type: T } : Compute<{ type: T } & P>;
 
-/** A "prepare" method to be used as the second parameter of {@link createEvent}. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type PrepareEvent<P extends object> = (...args: any[]) => P;
-
-/**
- * Intermediate step to infer the payload and arguments from prepareEvent.
- * @internal
- */
-type _EventCreatorWithPayload<
+/** A factory for constructing events that is created by {@link createEvent}. */
+interface EventCreator<
 	T extends string,
-	PE extends PrepareEvent<object>
-> = PE extends PrepareEvent<infer P>
-	? EventCreatorWithPayload<T, Parameters<PE>, P>
-	: never;
-
-/** Basic type for all event creators. */
-interface BaseEventCreator<T extends string, P extends object> {
+	P extends object,
+	A extends unknown[]
+> {
+	/** Calling this {@link EventCreator} will return a new event object with the configured event `type`. */
+	(...args: A): CreatedEvent<T, P>;
+	/** The event type of events that are created with this {@link EventCreator} */
 	type: T;
-	match: (e: AnyEventObject) => e is ConstructedEvent<T, P>;
+	/** Type predicate that narrows given events to events created with this {@link EventCreator}. */
+	match: (e: AnyEventObject) => e is CreatedEvent<T, P>;
 }
 
 /**
- * An event creator that takes multiple arguments which are passed
- * to a `PrepareEvent` method to create the final event.
- */
-export interface EventCreatorWithPayload<
-	T extends string,
-	Args extends unknown[],
-	P extends object
-> extends BaseEventCreator<T, P> {
-	/** Calling this event creator with `Args` will return an event event object for the type. */
-	(...args: Args): ConstructedEvent<T, P>;
-}
-
-/** An event creator of type `T` that takes no payload. */
-export interface EventCreatorNoPayload<T extends string>
-	extends BaseEventCreator<T, Record<string, never>> {
-	/** Calling this {@link EventCreator} will return a new event object with the defined type. */
-	(): ConstructedEvent<T>;
-}
-
-/**
- * A utility function to create an event creator for the given event type.
- * An additional `type` property is attached to the event creator
- * function which equals the provided type and can be referenced in machine
- * definition to avoid duplicate event types and to simplify refactoring.
+ * Creates an {@link EventCreator} for the given event type, which is an factory
+ * for constructing new events of that type.
+ * An additional `type` property is attached to the returned {@link EventCreator}
+ * function which equals the provided type and can used to avoid "magic strings".
  *
- * Furthermore, a `match` method is attached to the event creator to serve as
- * a type predicate, which narrows given events to events with the same type as
- * events from the created event creator.
- *
- * Lastly, the event creator function will have its `toString()` method overridden
- * so that it returns the event type.
+ * Furthermore, a `match` type predicate is attached to the {@link EventCreator},
+ * which narrows given events to events with the same type.
  *
  * @param type The event type to use for created events.
- * @param prepare A method that takes any number of arguments and returns the event payload.
+ * @param prepare An optional function that takes any number of arguments and
+ * returns the event payload. The arguments received by this function will be
+ * required as arguments for the {@link EventCreator}.
+ *
+ * @example
+ * // constructing event creators.
+ * const noData = createEvent("test.no_data");
+ * const withData = createEvent("test.data", (id: string) => ({
+ *		id,
+ *		createdAt: new Date().toISOString()
+ * }));
+ *
+ * //using the event creators
+ * console.log(withData("123")) // => { id: "123", createdAt: "2022-01-07T14:02:25.893Z" }
+ * console.log(withData.type) // => "test.no_data"
+ * someActor.send(noData()); // => sends { type: "test.no_data" } to someActor
+ * noData.match({type: "other"}) // => false
+ * noData.match({type: "test.no_data"}) // => true returned as matching type predicate
  */
-export function createEvent<T extends string>(
-	type: T
-): EventCreatorNoPayload<T>;
+export function createEvent<
+	T extends string,
+	P extends object = Empty,
+	A extends unknown[] = []
+>(type: T, prepare?: (...args: A) => P): EventCreator<T, P, A> {
+	const eventCreator: EventCreator<T, P, A> = (...args): CreatedEvent<T, P> => {
+		if (!prepare) return { type } as CreatedEvent<T, P>;
 
-export function createEvent<T extends string, PE extends PrepareEvent<object>>(
-	type: T,
-	prepareEvent: PE
-): _EventCreatorWithPayload<T, PE>;
-
-export function createEvent(
-	type: string,
-	prepareEvent?: UnknownFunction
-): unknown {
-	function eventCreator(...args: unknown[]) {
-		if (!prepareEvent) return { type };
-
-		const payload = prepareEvent(...args);
+		const payload = prepare(...args);
 		if (typeof payload !== "object") {
-			throw new Error("prepareEvent must return an object. Was: " + payload);
+			throw new TypeError("Prepare must return an object. Was: " + payload);
 		}
 
 		return {
 			...payload,
 			type,
-		};
-	}
+		} as CreatedEvent<T, P>;
+	};
 
 	eventCreator.toString = () => `${type}`;
 	eventCreator.type = type;
-	eventCreator.match = (e: AnyEventObject) => e.type === type;
+	eventCreator.match = (e: AnyEventObject): e is CreatedEvent<T, P> =>
+		e.type === type;
 
 	return eventCreator;
 }

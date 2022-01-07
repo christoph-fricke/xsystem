@@ -25,7 +25,6 @@ describe(createEvent, () => {
 	it("should attach an `match` function to match events to the created event", () => {
 		const test = createEvent("test.event");
 
-		expect(typeof test.match).toBe("function");
 		expect(test.match({ type: "test.event" })).toBe(true);
 		expect(test.match({ type: "hello", num: 42 })).toBe(false);
 	});
@@ -36,6 +35,22 @@ describe(createEvent, () => {
 		const ev = test("123");
 
 		expect(ev).toStrictEqual({ type: "test.event", id: "123" });
+	});
+
+	it.only("should display and throw an type error if the prepare callback does not return object", () => {
+		// @ts-expect-error Must return something
+		const noReturn = createEvent("test", (id: string) => {
+			id;
+		});
+		// @ts-expect-error Must return an object
+		const noObject = createEvent("test", (id: string) => id);
+
+		expect(() => noReturn("123")).toThrowError(
+			new TypeError("Prepare must return an object. Was: undefined")
+		);
+		expect(() => noObject("123")).toThrowError(
+			new TypeError("Prepare must return an object. Was: 123")
+		);
 	});
 
 	it("should be possible to use created events in machine definitions", () => {
