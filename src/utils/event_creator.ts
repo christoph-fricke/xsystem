@@ -107,3 +107,24 @@ export function createEvent<
 
 	return eventCreator;
 }
+
+/**
+ * Maps event creators to an event object for XState models.
+ * TODO: Fix typings so it is correctly typed in usage. Currently, it throws errors.
+ */
+export function fromEventCreators<
+	Creators extends EventCreator<T, P, A>[],
+	T extends string,
+	P extends object = Empty,
+	A extends unknown[] = []
+>(...creators: Creators) {
+	const map: { [K in T]: EventCreator<K, P, A> } = {} as {
+		[K in T]: EventCreator<K, P, A>;
+	};
+
+	for (const creator of creators) {
+		map[creator.type] = creator;
+	}
+
+	return map;
+}
