@@ -31,20 +31,11 @@ describe(createEvent, () => {
 	});
 
 	it("should accept an payload creator as an optional argument", () => {
-		const test = createEvent("test.event", (id: string) => id);
+		const test = createEvent("test.event", (id: string) => ({ id }));
 
 		const ev = test("123");
 
-		expect(ev).toStrictEqual({ type: "test.event", payload: "123" });
-	});
-
-	it("should throw an error if the prepare callback returns no value", () => {
-		const call = () =>
-			createEvent("test", (id) => {
-				id;
-			});
-
-		expect(call()).toThrowError("prepareEvent did not return a value");
+		expect(ev).toStrictEqual({ type: "test.event", id: "123" });
 	});
 
 	it("should be possible to use created events in machine definitions", () => {
@@ -78,9 +69,7 @@ describe("EventFrom", () => {
 		// This assignment should not error.
 		const e: Ev = {
 			type: "test.event",
-			payload: {
-				id: "123",
-			},
+			id: "123",
 		};
 
 		expect(e).toBe(e);

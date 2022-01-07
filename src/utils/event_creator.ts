@@ -5,6 +5,7 @@ import type { AnyEventObject, EventFrom as OriginalEventFrom } from "xstate";
 // Original: https://github.com/reduxjs/redux-toolkit/blob/master/packages/toolkit/src/createAction.ts
 
 type UnknownFunction = (...args: unknown[]) => unknown;
+export type Compute<A> = { [K in keyof A]: A[K] } & unknown;
 
 /**
  * Extracts an event shape from provided type. If the provided type is not an event
@@ -12,21 +13,21 @@ type UnknownFunction = (...args: unknown[]) => unknown;
  * of `EventFrom`.
  */
 export type EventFrom<C> = C extends BaseEventCreator<infer T, infer P>
-	? StructuredEvent<T, P>
+	? ConstructedEvent<T, P>
 	: OriginalEventFrom<C>;
 
 /**
  * An event with an associated payload. This is the
  * type of events returned by `createEvent()` event creators.
  */
-export type StructuredEvent<T extends string = string, P = void> = {
-	type: T;
-	payload: P;
-};
+export type ConstructedEvent<
+	T extends string,
+	P extends object = Record<string, never>
+> = P extends Record<string, never> ? { type: T } : Compute<{ type: T } & P>;
 
 /** A "prepare" method to be used as the second parameter of {@link createEvent}. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type PrepareEvent<P> = (...args: any[]) => P;
+export type PrepareEvent<P extends object> = (...args: any[]) => P;
 
 /**
  * Intermediate step to infer the payload and arguments from prepareEvent.
@@ -34,15 +35,15 @@ export type PrepareEvent<P> = (...args: any[]) => P;
  */
 type _EventCreatorWithPayload<
 	T extends string,
-	PA extends PrepareEvent<unknown>
-> = PA extends PrepareEvent<infer P>
-	? EventCreatorWithPayload<T, Parameters<PA>, P>
+	PE extends PrepareEvent<object>
+> = PE extends PrepareEvent<infer P>
+	? EventCreatorWithPayload<T, Parameters<PE>, P>
 	: never;
 
 /** Basic type for all event creators. */
-interface BaseEventCreator<T extends string, P> {
+interface BaseEventCreator<T extends string, P extends object> {
 	type: T;
-	match: (e: AnyEventObject) => e is StructuredEvent<T, P>;
+	match: (e: AnyEventObject) => e is ConstructedEvent<T, P>;
 }
 
 /**
@@ -52,17 +53,17 @@ interface BaseEventCreator<T extends string, P> {
 export interface EventCreatorWithPayload<
 	T extends string,
 	Args extends unknown[],
-	P
+	P extends object
 > extends BaseEventCreator<T, P> {
 	/** Calling this event creator with `Args` will return an event event object for the type. */
-	(...args: Args): StructuredEvent<T, P>;
+	(...args: Args): ConstructedEvent<T, P>;
 }
 
 /** An event creator of type `T` that takes no payload. */
 export interface EventCreatorNoPayload<T extends string>
-	extends BaseEventCreator<T, void> {
+	extends BaseEventCreator<T, Record<string, never>> {
 	/** Calling this {@link EventCreator} will return a new event object with the defined type. */
-	(): StructuredEvent<T>;
+	(): ConstructedEvent<T>;
 }
 
 /**
@@ -85,7 +86,7 @@ export function createEvent<T extends string>(
 	type: T
 ): EventCreatorNoPayload<T>;
 
-export function createEvent<T extends string, PE extends PrepareEvent<unknown>>(
+export function createEvent<T extends string, PE extends PrepareEvent<object>>(
 	type: T,
 	prepareEvent: PE
 ): _EventCreatorWithPayload<T, PE>;
@@ -98,20 +99,19 @@ export function createEvent(
 		if (!prepareEvent) return { type };
 
 		const payload = prepareEvent(...args);
-		if (!payload) {
-			throw new Error("prepareEvent did not return a value");
+		if (typeof payload !== "object") {
+			throw new Error("prepareEvent must return an object. Was: " + payload);
 		}
 
 		return {
+			...payload,
 			type,
-			payload,
 		};
 	}
 
 	eventCreator.toString = () => `${type}`;
 	eventCreator.type = type;
-	eventCreator.match = (e: AnyEventObject): e is StructuredEvent =>
-		e.type === type;
+	eventCreator.match = (e: AnyEventObject) => e.type === type;
 
 	return eventCreator;
 }
