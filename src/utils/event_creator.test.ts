@@ -37,7 +37,7 @@ describe(createEvent, () => {
 		expect(ev).toStrictEqual({ type: "test.event", id: "123" });
 	});
 
-	it.only("should display and throw an type error if the prepare callback does not return object", () => {
+	it("should display and throw an type error if the prepare callback does not return object", () => {
 		// @ts-expect-error Must return something
 		const noReturn = createEvent("test", (id: string) => {
 			id;
