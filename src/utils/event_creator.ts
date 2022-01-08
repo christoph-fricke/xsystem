@@ -56,7 +56,7 @@ export interface EventCreator<
  * Creates an {@link EventCreator} for the given event type, which is an factory
  * for constructing new events of that type.
  * An additional `type` property is attached to the returned {@link EventCreator}
- * function which equals the provided type and can used to avoid "magic strings".
+ * function which equals the provided type and can be used to avoid "magic strings".
  *
  * Furthermore, a `match` type predicate is attached to the {@link EventCreator},
  * which narrows given events to events with the same type.
