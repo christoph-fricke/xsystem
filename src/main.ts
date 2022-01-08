@@ -12,4 +12,5 @@ export type { EventBus, WithPubSub } from "./messaging/mod";
 export { subscribe, unsubscribe } from "./subscriptions/mod";
 export type { Publish, SubEvent } from "./subscriptions/mod";
 
-export { fromActor, fromMachine, is } from "./utils/mod";
+export { fromActor, fromMachine, is, createEvent } from "./utils/mod";
+export type { EventFrom } from "./utils/mod";
