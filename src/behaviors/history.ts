@@ -1,27 +1,17 @@
 import type { Behavior, EventObject } from "xstate";
-import { is } from "../utils/mod";
+import { createEvent, EventFrom } from "../utils/mod";
 
-interface UndoEvent extends EventObject {
-	type: "xsystem.undo";
-}
+/** Creates an undo event. */
+export const undo = createEvent("xsystem.undo");
 
-/** Creates an {@link UndoEvent}. */
-export function undo(): UndoEvent {
-	return { type: "xsystem.undo" };
-}
+/** Creates an undo event. */
+export const redo = createEvent("xsystem.redo");
 
-interface RedoEvent extends EventObject {
-	type: "xsystem.redo";
-}
-
-/** Creates an {@link RedoEvent}. */
-export function redo(): RedoEvent {
-	return { type: "xsystem.redo" };
-}
+type HistoryEvent = EventFrom<typeof undo> | EventFrom<typeof redo>;
 
 /** Higher order type to wrap the type for a {@link Behavior} with history events. */
 export type WithHistory<B> = B extends Behavior<infer E, infer S>
-	? Behavior<UndoEvent | RedoEvent | E, S>
+	? Behavior<HistoryEvent | E, S>
 	: never;
 
 /**
@@ -40,7 +30,7 @@ export function withHistory<E extends EventObject, S>(
 	return {
 		...behavior,
 		transition: (state, event, ctx) => {
-			if (is<UndoEvent>("xsystem.undo", event)) {
+			if (undo.match(event)) {
 				// "undo" is a no-op if there is no previous state
 				const previousState = index > 0 ? history[--index] : history[index];
 
@@ -48,7 +38,7 @@ export function withHistory<E extends EventObject, S>(
 				return previousState;
 			}
 
-			if (is<RedoEvent>("xsystem.redo", event)) {
+			if (redo.match(event)) {
 				// "redo" is a no-op if there is no future state
 				const futureState =
 					index + 1 < history.length ? history[++index] : history[index];

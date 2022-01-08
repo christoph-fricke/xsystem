@@ -33,12 +33,13 @@ export type EventFrom<C> = C extends EventCreator<
  * An event with an optional payload. This is the
  * type of events returned by {@link createEvent} event creators.
  */
-type CreatedEvent<T extends string, P extends object = Empty> = P extends Empty
-	? { type: T }
-	: Compute<{ type: T } & P>;
+export type CreatedEvent<
+	T extends string,
+	P extends object = Empty
+> = P extends Empty ? { type: T } : Compute<{ type: T } & P>;
 
 /** A factory for constructing events that is created by {@link createEvent}. */
-interface EventCreator<
+export interface EventCreator<
 	T extends string,
 	P extends object,
 	A extends unknown[]
