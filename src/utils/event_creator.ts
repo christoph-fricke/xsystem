@@ -5,7 +5,7 @@ import type { AnyEventObject, EventFrom as OriginalEventFrom } from "xstate";
 // Original: https://github.com/reduxjs/redux-toolkit/blob/master/packages/toolkit/src/createAction.ts
 
 type Empty = Record<string, never>;
-export type Compute<A> = { [K in keyof A]: A[K] } & unknown;
+type Compute<A> = { [K in keyof A]: A[K] } & unknown;
 
 /**
  * Extracts an event shape from provided generic. If the provided generic is not an event
@@ -33,10 +33,9 @@ export type EventFrom<C> = C extends EventCreator<
  * An event with an optional payload. This is the
  * type of events returned by {@link createEvent} event creators.
  */
-export type CreatedEvent<
-	T extends string,
-	P extends object = Empty
-> = P extends Empty ? { type: T } : Compute<{ type: T } & P>;
+type CreatedEvent<T extends string, P extends object = Empty> = P extends Empty
+	? { type: T }
+	: Compute<{ type: T } & P>;
 
 /** A factory for constructing events that is created by {@link createEvent}. */
 interface EventCreator<
@@ -108,23 +107,33 @@ export function createEvent<
 	return eventCreator;
 }
 
-/**
- * Maps event creators to an event object for XState models.
- * TODO: Fix typings so it is correctly typed in usage. Currently, it throws errors.
- */
-export function fromEventCreators<
-	Creators extends EventCreator<T, P, A>[],
-	T extends string,
-	P extends object = Empty,
-	A extends unknown[] = []
->(...creators: Creators) {
-	const map: { [K in T]: EventCreator<K, P, A> } = {} as {
-		[K in T]: EventCreator<K, P, A>;
-	};
+// TODO: This is an idea to map event-creators into event object for XState models.
+// However, it does not work yet...
 
-	for (const creator of creators) {
-		map[creator.type] = creator;
-	}
+// /** Maps event creators to an event object for XState models. */
+// export function fromEventCreators<
+// 	Creators extends EventCreator<T, P, A>[],
+// 	T extends string,
+// 	P extends object,
+// 	A extends any[]
+// >(...creators: Creators): EventMap<Creators> {
+// 	const map = {} as EventMap<Creators>;
+//
+// 	for (const creator of creators) {
+// 		const prepare = (...args: A): P => {
+// 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// 			const {type, ...payload} = creator(...args);
+// 			return payload as P;
+// 		}
+// 		map[creator.type] = prepare;
+// 	}
+//
+// 	return map;
+// }
 
-	return map;
-}
+// /** Recursively building a map of the different event-creators. */
+// type EventMap<FSS extends unknown[]> = FSS extends [infer F, ...infer FS]
+// 	? F extends EventCreator<infer T, infer P, infer A>
+// 		? Record<T, (...args: A) => P> | EventMap<FS>
+// 		: "Array content must consist of event creators."
+// 	: never;

@@ -1,6 +1,5 @@
 import { createMachine, interpret } from "xstate";
-import { createModel } from "xstate/lib/model";
-import { createEvent, EventFrom, fromEventCreators } from "./event_creator";
+import { createEvent, EventFrom } from "./event_creator";
 
 describe(createEvent, () => {
 	it("should return an event-creator function", () => {
@@ -89,44 +88,5 @@ describe("EventFrom", () => {
 		};
 
 		expect(e).toBe(e);
-	});
-});
-
-describe(fromEventCreators, () => {
-	it("should aggregate event creators into an events object", () => {
-		const first = createEvent("test.first", (id: string) => ({ id }));
-		const second = createEvent("test.second");
-
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		// @ts-ignore
-		const object = fromEventCreators(first, second);
-
-		expect(object).toStrictEqual({
-			"test.first": first,
-			"test.second": second,
-		});
-	});
-
-	it("should make it easier to attach event creators to models", () => {
-		const first = createEvent("test.first", (id: string) => ({ id }));
-		const second = createEvent("test.second");
-
-		const model = createModel(null, {
-			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-			// @ts-ignore
-			events: fromEventCreators(first, second),
-		});
-
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		// @ts-ignore
-		expect(model.events["test.first"]("123")).toStrictEqual({
-			type: "test.first",
-			id: "123",
-		});
-		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-		// @ts-ignore
-		expect(model.events["test.second"]()).toStrictEqual({
-			type: "test.second",
-		});
 	});
 });
