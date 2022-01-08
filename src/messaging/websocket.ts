@@ -1,13 +1,12 @@
 import type { ActorContext, Behavior, EventObject } from "xstate";
 import type { Publish } from "../subscriptions/mod";
-import { is } from "../utils/mod";
+import { createEvent, EventFrom } from "../utils/mod";
 import type { WithPubSub } from "./pub_sub";
 import { withPubSub } from "./pub_sub";
 
 /** @internal Notifies the spawned actor about a state change in the socket. */
-interface StateChangeEvent extends EventObject {
-	type: "xsystem.websocket.internal.state_change";
-}
+const stateChange = createEvent("xsystem.websocket.internal.state_change");
+type StateChangeEvent = EventFrom<typeof stateChange>;
 
 interface WebSocketState {
 	status: "open" | "closed" | "closing" | "connecting";
@@ -40,9 +39,7 @@ export function createWebSocket<E extends EventObject, P extends EventObject>(
 	return withPubSub((publish) => ({
 		initialState,
 		transition: (state, event) => {
-			if (
-				is<StateChangeEvent>("xsystem.websocket.internal.state_change", event)
-			) {
+			if (stateChange.match(event)) {
 				// Empty the queue if the socket opened.
 				if (socket.readyState === socket.OPEN) {
 					for (const msg of state.queue) socket.send(msg);
@@ -96,8 +93,7 @@ function nextState(socket: WebSocket, queue: string[]): WebSocketState {
 function createStateChangeHandler(
 	ctx: ActorContext<StateChangeEvent, WebSocketState>
 ): () => void {
-	return () =>
-		ctx.self.send({ type: "xsystem.websocket.internal.state_change" });
+	return () => ctx.self.send(stateChange());
 }
 
 function createPublishMessage<P extends EventObject>(
