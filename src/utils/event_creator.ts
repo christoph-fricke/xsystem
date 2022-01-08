@@ -75,8 +75,8 @@ export interface EventCreator<
  * }));
  *
  * //using the event creators
- * console.log(withData("123")) // => { id: "123", createdAt: "2022-01-07T14:02:25.893Z" }
- * console.log(withData.type) // => "test.no_data"
+ * console.log(withData("123")) // => { type: "test.data", id: "123", createdAt: "2022-01-07T14:02:25.893Z" }
+ * console.log(withData.type) // => "test.data"
  * someActor.send(noData()); // => sends { type: "test.no_data" } to someActor
  * noData.match({type: "other"}) // => false
  * noData.match({type: "test.no_data"}) // => true returned as matching type predicate
