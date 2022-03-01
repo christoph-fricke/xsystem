@@ -58,7 +58,7 @@ export interface EventCreator<
 	match(e: AnyEventObject): e is CreatedEvent<T, P>;
 
 	/**
-	 * Creates a callback function that sends events from this {@link EventCreator} to the given actor.
+	 * Creates a function that sends events from this {@link EventCreator} to the given actor when called.
 	 *
 	 * This is intended as a helper when connecting actors to UIs. It avoids the following boilerplate:
 	 *
@@ -68,15 +68,15 @@ export interface EventCreator<
 	 *		data,
 	 * }));
 	 *
-	 * // Creating callbacks in the UI to send events to an actor
+	 * // Creating event-handlers in the UI to send events to an actor
 	 * const actor = useInterpret(...); // Actor that can receive "doSomething" events
 	 *
 	 * // Instead of writing UI event-handlers manually over and over again...
 	 * const handleData = (data: string) => actor.send(doSomething(data));
 	 * // ... it can be writing like this:
-	 * const handleData = doSomething.createCallback(actor); // (data: string) => void;
+	 * const handleData = doSomething.createSendCall(actor); // (data: string) => void;
 	 */
-	createCallback(
+	createSendCall(
 		receiver: ActorRef<CreatedEvent<T, P>, unknown>
 	): (...args: A) => void;
 }
@@ -138,7 +138,7 @@ export function createEvent<
 	eventCreator.match = (e: AnyEventObject): e is CreatedEvent<T, P> =>
 		e.type === type;
 
-	eventCreator.createCallback =
+	eventCreator.createSendCall =
 		(receiver) =>
 		(...args) =>
 			receiver.send(eventCreator(...args));

@@ -66,8 +66,8 @@ describe(createEvent, () => {
 		const ev1 = createEvent("test.first");
 		const ev2 = createEvent("test.second", (body: string) => ({ body }));
 
-		const handleEv1 = ev1.createCallback(receiver);
-		const handleEv2 = ev2.createCallback(receiver);
+		const handleEv1 = ev1.createSendCall(receiver);
+		const handleEv2 = ev2.createSendCall(receiver);
 
 		handleEv1();
 		handleEv2("body");
@@ -78,7 +78,7 @@ describe(createEvent, () => {
 
 		const ev3 = createEvent("test.third");
 		// @ts-expect-error Receiver does not accept "ev3" events
-		ev3.createCallback(receiver);
+		ev3.createSendCall(receiver);
 	});
 
 	it("should be possible to use created events in machine definitions", () => {
