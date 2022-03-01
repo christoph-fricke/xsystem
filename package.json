@@ -10,7 +10,6 @@
 		"Plug'n Play"
 	],
 	"repository": "github:christoph-fricke/xsystem",
-	"type": "module",
 	"sideEffects": false,
 	"main": "./cjs/main.js",
 	"module": "./dist/main.js",

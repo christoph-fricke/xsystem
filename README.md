@@ -19,7 +19,6 @@ another actor.
 ## Installation
 
 _XSystem_ has a peer dependency to _XState_, which has to be installed as well.
-Currently, this library is bundled and distributed as an ES module.
 
 ```bash
 npm i xstate xsystem
