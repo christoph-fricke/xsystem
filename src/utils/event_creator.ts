@@ -87,8 +87,8 @@ export interface EventCreator<
  * An additional `type` property is attached to the returned {@link EventCreator}
  * function which equals the provided type and can be used to avoid "magic strings".
  *
- * To connect your UI with your actors, you can use the `createCallback` helper to
- * avoid boilerplate when writing event handlers. See the TSDoc for `createCallback`
+ * To connect your UI with your actors, you can use the `createSendCall` helper to
+ * avoid boilerplate when writing event handlers. See the TSDoc for `createSendCall`
  * on the {@link EventCreator} interface.
  *
  * Furthermore, a `match` type predicate is attached to the {@link EventCreator},
