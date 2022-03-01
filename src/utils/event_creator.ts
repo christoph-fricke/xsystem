@@ -1,4 +1,8 @@
-import type { AnyEventObject, EventFrom as OriginalEventFrom } from "xstate";
+import type {
+	ActorRef,
+	AnyEventObject,
+	EventFrom as OriginalEventFrom,
+} from "xstate";
 
 // This implementation is a port of `createAction` from Redux Toolkit, adapted
 // and simplified to fit into the XState ecosystem.
@@ -46,10 +50,35 @@ export interface EventCreator<
 > {
 	/** Calling this {@link EventCreator} will return a new event object with the configured event `type`. */
 	(...args: A): CreatedEvent<T, P>;
+
 	/** The event type of events that are created with this {@link EventCreator} */
 	type: T;
+
 	/** Type predicate that narrows given events to events created with this {@link EventCreator}. */
-	match: (e: AnyEventObject) => e is CreatedEvent<T, P>;
+	match(e: AnyEventObject): e is CreatedEvent<T, P>;
+
+	/**
+	 * Creates a function that sends events from this {@link EventCreator} to the given actor when called.
+	 *
+	 * This is intended as a helper when connecting actors to UIs. It avoids the following boilerplate:
+	 *
+	 * @example
+	 * // Example event creator
+	 * const doSomething = createEvent("do.make.something", (data: string) => ({
+	 *		data,
+	 * }));
+	 *
+	 * // Creating event-handlers in the UI to send events to an actor
+	 * const actor = useInterpret(...); // Actor that can receive "doSomething" events
+	 *
+	 * // Instead of writing UI event-handlers manually over and over again...
+	 * const handleData = (data: string) => actor.send(doSomething(data));
+	 * // ... it can be writing like this:
+	 * const handleData = doSomething.createSendCall(actor); // (data: string) => void;
+	 */
+	createSendCall(
+		receiver: ActorRef<CreatedEvent<T, P>, unknown>
+	): (...args: A) => void;
 }
 
 /**
@@ -57,6 +86,10 @@ export interface EventCreator<
  * for constructing new events of that type.
  * An additional `type` property is attached to the returned {@link EventCreator}
  * function which equals the provided type and can be used to avoid "magic strings".
+ *
+ * To connect your UI with your actors, you can use the `createSendCall` helper to
+ * avoid boilerplate when writing event handlers. See the TSDoc for `createSendCall`
+ * on the {@link EventCreator} interface.
  *
  * Furthermore, a `match` type predicate is attached to the {@link EventCreator},
  * which narrows given events to events with the same type.
@@ -104,6 +137,11 @@ export function createEvent<
 	eventCreator.type = type;
 	eventCreator.match = (e: AnyEventObject): e is CreatedEvent<T, P> =>
 		e.type === type;
+
+	eventCreator.createSendCall =
+		(receiver) =>
+		(...args) =>
+			receiver.send(eventCreator(...args));
 
 	return eventCreator;
 }

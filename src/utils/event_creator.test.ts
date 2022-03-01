@@ -1,4 +1,5 @@
-import { createMachine, interpret } from "xstate";
+import { mock } from "jest-mock-extended";
+import { ActorRef, createMachine, interpret } from "xstate";
 import { createEvent, EventFrom } from "./event_creator";
 
 describe(createEvent, () => {
@@ -51,6 +52,33 @@ describe(createEvent, () => {
 		expect(() => noObject("123")).toThrowError(
 			new TypeError("Prepare must return an object. Was: 123")
 		);
+	});
+
+	it("should provide a helper to construct event-handler callbacks when connecting actors", () => {
+		const receiver =
+			mock<
+				ActorRef<
+					EventFrom<typeof ev1> | EventFrom<typeof ev2>,
+					{ ctxData: string }
+				>
+			>();
+
+		const ev1 = createEvent("test.first");
+		const ev2 = createEvent("test.second", (body: string) => ({ body }));
+
+		const handleEv1 = ev1.createSendCall(receiver);
+		const handleEv2 = ev2.createSendCall(receiver);
+
+		handleEv1();
+		handleEv2("body");
+
+		expect(receiver.send).toBeCalledTimes(2);
+		expect(receiver.send).nthCalledWith(1, ev1());
+		expect(receiver.send).nthCalledWith(2, ev2("body"));
+
+		const ev3 = createEvent("test.third");
+		// @ts-expect-error Receiver does not accept "ev3" events
+		ev3.createSendCall(receiver);
 	});
 
 	it("should be possible to use created events in machine definitions", () => {
