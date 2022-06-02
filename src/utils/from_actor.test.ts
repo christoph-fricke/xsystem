@@ -109,7 +109,7 @@ describe(fromActor, () => {
 			createMachine<Context, Event>({
 				id: "ping",
 				initial: "ping",
-				invoke: { src: "pub" },
+				invoke: { id: "pub", src: "pub" },
 				states: {
 					ping: {
 						on: { ping: "pong" },
