@@ -1,5 +1,5 @@
 node_modules
-coverage
+reports
 dist
 cjs
 *.tgz
