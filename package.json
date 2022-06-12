@@ -44,6 +44,7 @@
 		"xstate": "^4.25.0"
 	},
 	"devDependencies": {
+		"@swc/core": "^1.2.198",
 		"@swc/jest": "^0.2.21",
 		"@types/jest": "^28.1.0",
 		"@typescript-eslint/eslint-plugin": "^5.27.0",
