@@ -3,14 +3,7 @@ const config = {
 	testEnvironment: "node",
 	collectCoverageFrom: ["src/**", "!**/mod.ts", "!src/main.ts"],
 	transform: {
-		"^.+\\.(t|j)sx?$": [
-			"@swc-node/jest",
-			{
-				swc: {
-					sourceMaps: "inline",
-				},
-			},
-		],
+		"^.+\\.(t|j)sx?$": ["@swc/jest"],
 	},
 };
 
