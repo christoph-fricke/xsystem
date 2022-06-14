@@ -2,9 +2,11 @@
 const config = {
 	tempDirName: "reports/stryker-tmp",
 	reporters: ["html", "progress"],
-	coverageAnalysis: "perTest",
-	checkers: ["typescript"],
+	thresholds: { high: 90, low: 80, break: 75 },
+
 	testRunner: "jest",
+	checkers: ["typescript"],
+	coverageAnalysis: "perTest",
 	jest: {
 		projectType: "custom",
 		config: (await import("./jest.config.mjs")).default,
