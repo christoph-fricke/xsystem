@@ -38,12 +38,16 @@
 		"lint": "tsc --noEmit && eslint . && prettier -c .",
 		"test": "jest",
 		"test:watch": "jest --watch",
-		"test:cov": "jest --coverage"
+		"test:cov": "jest --coverage",
+		"test:mut": "stryker run stryker.config.mjs"
 	},
 	"peerDependencies": {
 		"xstate": "^4.25.0"
 	},
 	"devDependencies": {
+		"@stryker-mutator/core": "^6.0.2",
+		"@stryker-mutator/jest-runner": "^6.0.2",
+		"@stryker-mutator/typescript-checker": "^6.0.2",
 		"@swc/core": "^1.2.198",
 		"@swc/jest": "^0.2.21",
 		"@types/jest": "^28.1.0",
