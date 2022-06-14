@@ -58,6 +58,16 @@ describe(BucketMap, () => {
 			expect(map.get("test")).toStrictEqual(new Set());
 		});
 
+		it("should ignore non-existing values and return false", () => {
+			const map = new BucketMap<string, string>();
+			map.add("test", "value");
+
+			const affected = map.delete("non-existing");
+
+			expect(affected).toBe(false);
+			expect(Array.from(map.values())).toStrictEqual(["value"]);
+		});
+
 		it("should delete an existing value from all buckets", () => {
 			const map = new BucketMap<string, string>();
 			map.add("test1", "value");
