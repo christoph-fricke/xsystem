@@ -4,7 +4,7 @@ import { createEvent, EventFrom } from "../utils/mod";
 /** Creates an undo event. */
 export const undo = createEvent("xsystem.undo");
 
-/** Creates an undo event. */
+/** Creates an redo event. */
 export const redo = createEvent("xsystem.redo");
 
 type HistoryEvent = EventFrom<typeof undo> | EventFrom<typeof redo>;
@@ -13,6 +13,12 @@ type HistoryEvent = EventFrom<typeof undo> | EventFrom<typeof redo>;
 export type WithHistory<B> = B extends Behavior<infer E, infer S>
 	? Behavior<HistoryEvent | E, S>
 	: never;
+
+interface HistoryLink<S> {
+	value: S;
+	prev?: HistoryLink<S>;
+	next?: HistoryLink<S>;
+}
 
 /**
  * Adds undo/redo behavior to a given {@link Behavior}.
@@ -24,40 +30,33 @@ export type WithHistory<B> = B extends Behavior<infer E, infer S>
 export function withHistory<E extends EventObject, S>(
 	behavior: Behavior<E, S>
 ): WithHistory<typeof behavior> {
-	let index = 0;
-	const history: S[] = [behavior.initialState];
+	let currentLink: HistoryLink<S> = {
+		value: behavior.initialState,
+	};
 
 	return {
 		...behavior,
 		transition: (state, event, ctx) => {
 			if (undo.match(event)) {
 				// "undo" is a no-op if there is no previous state
-				const previousState = index > 0 ? history[--index] : history[index];
-
-				assertValue(previousState);
-				return previousState;
+				currentLink = currentLink.prev ?? currentLink;
+				return currentLink.value;
 			}
 
 			if (redo.match(event)) {
 				// "redo" is a no-op if there is no future state
-				const futureState =
-					index + 1 < history.length ? history[++index] : history[index];
-
-				assertValue(futureState);
-				return futureState;
+				currentLink = currentLink.next ?? currentLink;
+				return currentLink.value;
 			}
 
-			const nextState = behavior.transition(state, event, ctx);
-			history[++index] = nextState;
-			// Changing state during time traveling rewrites the future.
-			if (history.length !== index + 1) history.length = index + 1;
+			const nextLink: HistoryLink<S> = {
+				value: behavior.transition(state, event, ctx),
+				prev: currentLink,
+			};
+			currentLink.next = nextLink;
+			currentLink = nextLink;
 
-			return nextState;
+			return currentLink.value;
 		},
 	};
-}
-
-function assertValue<T>(value: T | undefined): asserts value is T {
-	if (value === undefined)
-		throw new Error("Undo/Redo used an index that is out of bounds!");
 }
