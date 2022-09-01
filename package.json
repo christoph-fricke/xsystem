@@ -44,6 +44,8 @@
 		"xstate": "^4.25.0"
 	},
 	"devDependencies": {
+		"@commitlint/cli": "^17.1.2",
+		"@commitlint/config-conventional": "^17.1.0",
 		"@swc/core": "^1.2.245",
 		"@swc/jest": "^0.2.22",
 		"@types/jest": "^28.1.3",
