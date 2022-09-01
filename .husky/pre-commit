@@ -2,12 +2,10 @@
 . "$(dirname "$0")/_/husky.sh"
 
 echo ""
-echo "Running lint-staged..."
-npx lint-staged
+echo "Starting pre-commit hook..."
 
-echo ""
-echo "Running TypeScript check..."
-npx tsc --noEmit
+echo "Running Prettier and ESLint on staged files..."
+npx lint-staged
 
 echo ""
 echo "All checks successful."

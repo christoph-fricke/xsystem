@@ -1,4 +1,12 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+echo ""
+echo "Starting commit-msg hook..."
+
+echo "Running commitlint..."
 npx commitlint -x "@commitlint/config-conventional" -e "\${1}"
+
+echo ""
+echo "All checks successful."
+echo ""

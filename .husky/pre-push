@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo ""
+echo "Starting pre-push hook..."
+
+echo "Running TypeScript check..."
+npx tsc --noEmit
+
+echo ""
+info "Running Unit Tests"
+npm run test -- --watchAll false --bail
+
+echo ""
+echo "All checks successful."
+echo ""

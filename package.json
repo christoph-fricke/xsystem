@@ -72,9 +72,6 @@
 		],
 		"*.{ts,js,mjs}": [
 			"eslint --fix"
-		],
-		"*.ts": [
-			"npm run test -- --watchAll false --bail --findRelatedTests"
 		]
 	}
 }
