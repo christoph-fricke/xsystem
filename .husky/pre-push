@@ -8,7 +8,7 @@ echo "Running TypeScript check..."
 npx tsc --noEmit
 
 echo ""
-info "Running Unit Tests"
+echo "Running Unit Tests"
 npm run test -- --watchAll false --bail
 
 echo ""
