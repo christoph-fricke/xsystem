@@ -145,34 +145,3 @@ export function createEvent<
 
 	return eventCreator;
 }
-
-// TODO: This is an idea to map event-creators into event object for XState models.
-// However, it does not work yet...
-
-// /** Maps event creators to an event object for XState models. */
-// export function fromEventCreators<
-// 	Creators extends EventCreator<T, P, A>[],
-// 	T extends string,
-// 	P extends object,
-// 	A extends any[]
-// >(...creators: Creators): EventMap<Creators> {
-// 	const map = {} as EventMap<Creators>;
-//
-// 	for (const creator of creators) {
-// 		const prepare = (...args: A): P => {
-// 			// eslint-disable-next-line @typescript-eslint/no-unused-vars
-// 			const {type, ...payload} = creator(...args);
-// 			return payload as P;
-// 		}
-// 		map[creator.type] = prepare;
-// 	}
-//
-// 	return map;
-// }
-
-// /** Recursively building a map of the different event-creators. */
-// type EventMap<FSS extends unknown[]> = FSS extends [infer F, ...infer FS]
-// 	? F extends EventCreator<infer T, infer P, infer A>
-// 		? Record<T, (...args: A) => P> | EventMap<FS>
-// 		: "Array content must consist of event creators."
-// 	: never;
