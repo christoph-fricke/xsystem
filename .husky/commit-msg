@@ -5,7 +5,7 @@ echo ""
 echo "Starting commit-msg hook..."
 
 echo "Running commitlint..."
-npx commitlint -x "@commitlint/config-conventional" -e "\${1}"
+npx commitlint -x "@commitlint/config-conventional" -e "${1}"
 
 echo ""
 echo "All checks successful."

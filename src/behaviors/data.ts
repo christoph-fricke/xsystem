@@ -11,6 +11,22 @@ export function set<Data>(data: Data): SetEvent<Data> {
 	return { type: "xsystem.data.set", data };
 }
 
+export interface UpdateEvent<Data> extends EventObject {
+	type: "xsystem.data.update";
+	data: Data extends object ? Partial<Data> : Data;
+}
+
+/**
+ * Creates a {@link UpdateEvent}, which behaves like a {@link SetEvent} except for objects.
+ * When the stored data is an object, the data is shallow merged into the existing object,
+ * allowing for partial updates.
+ */
+export function update<Data>(
+	data: UpdateEvent<Data>["data"]
+): UpdateEvent<Data> {
+	return { type: "xsystem.data.update", data };
+}
+
 export interface ResetEvent extends EventObject {
 	type: "xsystem.data.reset";
 }
@@ -20,11 +36,7 @@ export function reset(): ResetEvent {
 	return { type: "xsystem.data.reset" };
 }
 
-type DataEvent<Data> = SetEvent<Data> | ResetEvent;
-
-// TODO: To allow more semantically data storage we might want to process any event
-// that contains a data prop as a set event. Then the events can have names meaningful
-// to the application.
+type DataEvent<Data> = SetEvent<Data> | UpdateEvent<Data> | ResetEvent;
 
 /**
  * Creates a behavior that stores some generic data in an actor's state.
@@ -42,7 +54,7 @@ type DataEvent<Data> = SetEvent<Data> | ResetEvent;
  * const store = spawnBehavior(createData("Hello World"));
  * store.getSnapshot() // => "Hello World"
  *
- * // Update the stored data
+ * // Replace the stored data
  * store.send(set("Hello Again"))
  * store.getSnapshot() // => "Hello Again"
  *
@@ -61,6 +73,12 @@ export function createData<Data>(
 				return event.data;
 			}
 
+			if (is<UpdateEvent<Data>>("xsystem.data.update", event)) {
+				return isObject(event.data)
+					? { ...state, ...(event.data as Partial<Data>) }
+					: (event.data as Data);
+			}
+
 			if (is<ResetEvent>("xsystem.data.reset", event)) {
 				return initial;
 			}
@@ -68,4 +86,8 @@ export function createData<Data>(
 			return state;
 		},
 	};
+}
+
+function isObject(data: unknown): data is object {
+	return typeof data === "object" && data !== null && !Array.isArray(data);
 }
