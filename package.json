@@ -41,7 +41,7 @@
 		"test:cov": "jest --coverage"
 	},
 	"peerDependencies": {
-		"xstate": "^4.25.0"
+		"xstate": "^5.0.0-beta.8"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^17.6.1",
@@ -58,7 +58,7 @@
 		"lint-staged": "^13.2.2",
 		"prettier": "^2.8.8",
 		"typescript": "^5.0.4",
-		"xstate": "~4.28.0"
+		"xstate": "^5.0.0-beta.8"
 	},
 	"engines": {
 		"node": "^12.20.0 || ^14.17.1 || >=16.0.0"
