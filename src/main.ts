@@ -1,5 +1,16 @@
-export { withSubscription, withHistory, undo, redo } from "./behaviors/mod";
-export type { WithHistory } from "./behaviors/mod";
+export {
+	withAsync,
+	withSubscription,
+	withHistory,
+	undo,
+	redo,
+} from "./behaviors/mod";
+export type {
+	AsyncBehavior,
+	AsyncStatus,
+	WithAsync,
+	WithHistory,
+} from "./behaviors/mod";
 
 export {
 	createEventBus,
