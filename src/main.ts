@@ -1,5 +1,13 @@
-export { withSubscription, withHistory, undo, redo } from "./behaviors/mod";
-export type { WithHistory } from "./behaviors/mod";
+export {
+	withSubscription,
+	withHistory,
+	undo,
+	redo,
+	createData,
+	set,
+	reset,
+} from "./behaviors/mod";
+export type { WithHistory, ResetEvent, SetEvent } from "./behaviors/mod";
 
 export {
 	createEventBus,
